@@ -1,50 +1,22 @@
-# Vite & HeroUI Template
+# Chatbot
 
-This is a template for creating applications using Vite and HeroUI (v2).
+This project is a form for a chatbot application that allows users to interact with the chatbot. The form is designed to provide a simple and effective user experience.
 
-[Try it on CodeSandbox](https://githubbox.com/frontio-ai/vite-template)
+## Installation and Setup
 
-## Technologies Used
+To set up this project, follow these steps:
 
-- [Vite](https://vitejs.dev/guide/)
-- [HeroUI](https://heroui.com)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org)
-- [Framer Motion](https://www.framer.com/motion)
+**Clone the repository**:
 
-## How to Use
-
-To clone the project, run the following command:
-
-```bash
-git clone https://github.com/frontio-ai/vite-template.git
-```
-
-### Install dependencies
-
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
-
-```bash
+````bash
+git clone https://github.com/arminamirinasab/ChatBot.git
+cd ChatBot
 npm install
-```
-
-### Run the development server
-
-```bash
 npm run dev
-```
+`````
+## Technologies
 
-### Setup pnpm (optional)
+This project is built using the following technologies:
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
-
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
-
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
-
-## License
-
-Licensed under the [MIT license](https://github.com/frontio-ai/vite-template/blob/main/LICENSE).
+ - React.js: For building the user interface.
+- ShadCN: For use UI components.
