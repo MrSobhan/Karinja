@@ -1,24 +1,24 @@
-"use client";;
-import { useRef } from "react";
+import { useRef , useContext  } from "react";
 import { motion } from "motion/react";
 import DottedMap from "dotted-map";
-
-import { useTheme } from "next-themes";
+import AuthContext from "@/context/authContext";
 
 export default function WorldMap({
   dots = [],
-  lineColor = "#0ea5e9"
+  lineColor
 }) {
+  const authContext = useContext(AuthContext)
   const svgRef = useRef(null);
   const map = new DottedMap({ height: 100, grid: "diagonal" });
 
-  const { theme } = useTheme();
+  lineColor = authContext.darkMode === true ? "#fff" : "#000"
+
 
   const svgMap = map.getSVG({
     radius: 0.22,
-    color: theme === "dark" ? "#FFFFFF40" : "#00000040",
+    color: authContext.darkMode === true ? "#FFFFFF40" : "#00000040",
     shape: "circle",
-    backgroundColor: theme === "dark" ? "black" : "white",
+    backgroundColor: authContext.darkMode === true ? "#09090b" : "white",
   });
 
   const projectPoint = (lat, lng) => {
@@ -38,7 +38,7 @@ export default function WorldMap({
 
   return (
     <div
-      className="w-[800px] mx-auto dark:bg-black bg-white rounded-lg  relative font-sans">
+      className="lg:w-[600px] md:w-[400px] w-[350px] mx-auto dark:bg-[#09090b] bg-white rounded-lg  relative font-sans">
       <img
         src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
         className="h-full w-full [mask-image:linear-gradient(to_bottom,transparent,white_10%,white_90%,transparent)] pointer-events-none select-none"
