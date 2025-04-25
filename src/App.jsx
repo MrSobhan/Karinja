@@ -7,6 +7,8 @@ import HomePage from "./pages/Home";
 import Login from "./pages/Login";
 import Singup from "./pages/Singup";
 
+import DevAuth from "@/Components/DevAuth";
+
 export default function App() {
   const routes = [
     { path: "/", element: <HomePage /> },
@@ -78,13 +80,13 @@ export default function App() {
         LoginUser
       }}
     >
-      <Routes>
-
-        {routes.map((route, i) => (
-          <Route key={i} path={route.path} element={route.element} />
-        ))}
-
-      </Routes>
+      <DevAuth>
+        <Routes>
+          {routes.map((route, i) => (
+            <Route key={i} path={route.path} element={route.element} />
+          ))}
+        </Routes>
+      </DevAuth>
     </AuthContext>
   );
 }

@@ -31,3 +31,11 @@ body {
 .dana {
     font-family: "dana" !important;
 }
+
+.img__contact{
+    filter: brightness(56%)
+}
+
+button, [role='combobox'] {
+   direction: rtl;
+}

@@ -1,16 +1,14 @@
 
 import { useRef, useState } from "react";
-import { FaCaretLeft, FaCaretRight } from "react-icons/fa6";
 import { IoArrowBackCircleOutline } from "react-icons/io5";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { FaAngleLeft , FaAngleRight  } from "react-icons/fa6";
 import "./Slider.css";
 
 export default function CardSlider({ title, children }) {
     const sliderRef = useRef(null);
     const scrollAmount = 300;
-
-    const [showBtnSlide, setShowBtnSlide] = useState('hidden')
 
 
     const rightSlideHandler = () => {
@@ -18,9 +16,6 @@ export default function CardSlider({ title, children }) {
             sliderRef.current.scrollLeft += scrollAmount;
             console.log(sliderRef.current.scrollLeft + scrollAmount);
 
-            if (sliderRef.current.scrollLeft == 0) {
-                setShowBtnSlide('hidden')
-            }
 
         }
     };
@@ -29,7 +24,6 @@ export default function CardSlider({ title, children }) {
         if (sliderRef.current) {
             sliderRef.current.scrollLeft -= scrollAmount;
         }
-        setShowBtnSlide('block')
     };
 
     return (
@@ -38,31 +32,34 @@ export default function CardSlider({ title, children }) {
                 <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" style={{ clipPath: "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)" }}></div>
             </div>
             <div className="container w-full flex items-center justify-between">
-                <h3 className="titleSlider lalezar mr-3">لیست {title} ها</h3>
 
 
                 <Link to={'/'}>
-                    <Button variant="text" className="py-2 px-3">لیست {title} ها <IoArrowBackCircleOutline className="inline text-xl" /></Button>
+                    <Button variant="text" className="py-2 px-3 moraba">لیست {title} ها <IoArrowBackCircleOutline className="inline text-xl" /></Button>
                 </Link>
+
+
+                <div className="flex gap-2">
+                    <button onClick={rightSlideHandler} className="hidden lg:block">
+                        <p className={"text-md bg-white shadow-lg dark:bg-black text-blue-gray-50 cursor-pointer rounded-full p-2.5 dark:border-white/[0.2] border border-transparent "}>
+                            <FaAngleRight  />
+                        </p>
+                    </button>
+                    <button onClick={leftSlideHandler} className="hidden lg:block">
+                        <p className="text-md bg-white shadow-lg dark:bg-black text-blue-gray-50 cursor-pointer rounded-full p-2.5 dark:border-white/[0.2] border border-transparent">
+                            <FaAngleLeft />
+                        </p>
+                    </button>
+                </div>
 
             </div>
 
-            <button onClick={rightSlideHandler} className=" hidden lg:block">
-                <p className={`text-xl bg-white shadow-lg dark:bg-black text-blue-gray-50 cursor-pointer rounded-full p-2.5 absolute -right-16 top-[50%] z-40 dark:border-white/[0.2] border border-transparent ${showBtnSlide}`}>
-                    <FaCaretRight />
-                </p>
-            </button>
-            <button onClick={leftSlideHandler} className=" hidden lg:block">
-                <p className="text-xl bg-white shadow-lg dark:bg-black text-blue-gray-50 cursor-pointer rounded-full p-2.5 absolute -left-16 top-[50%] z-40 dark:border-white/[0.2] border border-transparent">
-                    <FaCaretLeft />
-                </p>
-            </button>
+
 
 
             <div className="sliderBox overflow-x-scroll scroll-smooth relative" ref={sliderRef}>
                 <div className="content__sliderBox flex gap-x-4 pt-10">
                     {children}
-
                 </div>
             </div>
         </div>

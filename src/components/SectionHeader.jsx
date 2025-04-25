@@ -4,7 +4,6 @@ import { Button } from "./ui/button";
 import { HiArrowSmLeft , HiChevronDown  } from "react-icons/hi";
 import { FiSearch } from "react-icons/fi";
 import { Input } from "@/components/ui/input";
-// import { Checkbox } from "@/components/ui/checkbox";
 import {
     Command,
     CommandEmpty,
@@ -47,7 +46,7 @@ export function SectionHeader() {
         },
     ]
     return (
-        <div className="container relative max-w-7xl mx-auto py-32 w-full flex flex-col md:flex-row items-center justify-center">
+        <div className="container relative max-w-7xl mx-auto py-32 w-full flex flex-col md:flex-row items-center justify-center mt-16">
             <div className="mx-auto text-start">
                 <p class="antialiased font-sans inline-flex text-xs rounded-full border-dashed border-[2.5px] border-gray-900 dark:border-gray-500 py-1 px-6 dana font-medium">با بیش از 1000 ماشین در سراسر کشور</p>
                 <p className="font-bold text-xl mt-7 md:text-4xl dark:text-white text-black dana">

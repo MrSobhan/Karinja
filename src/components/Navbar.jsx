@@ -6,6 +6,7 @@ import { LuLogIn } from "react-icons/lu";
 import { FiSun, FiMoon } from "react-icons/fi"
 import AuthContext from "@/context/authContext";
 import { HiOutlineLocationMarker } from "react-icons/hi";
+import { IoPersonOutline } from "react-icons/io5";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,6 +21,21 @@ import {
     DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    MdPerson,
+    MdCreditCard,
+    MdSettings,
+    MdKeyboard,
+    MdGroup,
+    MdMail,
+    MdMessage,
+    MdMoreHoriz,
+    MdGroupAdd,
+    MdLogout,
+    MdApi,
+    MdSupport,
+    MdCode,
+  } from "react-icons/md";
 import { NavbarDock } from "./NavbarDock";
 
 export function Navbar() {
@@ -29,7 +45,7 @@ export function Navbar() {
 
     return (
         <div>
-            <div className="relative w-full lg:flex justify-between items-center px-2 md:px-6 py-4 hidden">
+            <div className=" fixed left-0 top-2 z-50 w-full lg:flex justify-between items-center px-2 md:px-6 py-4 hidden ">
 
 
                 <div className="flex items-center mx-auto dana">
@@ -109,56 +125,38 @@ export function Navbar() {
                             </Link>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="rounded-full w-9 h-9 shadow-md">O</Button>
+                                    <Button variant="outline" className="rounded-full w-9 h-9 shadow-md"><IoPersonOutline /></Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-56">
-                                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuContent className="w-48 text-right" dir="rtl">
+                                    <DropdownMenuLabel>حساب کاربری</DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem>
-                                            Profile
-                                            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                                            <MdPerson className="ml-2 text-lg" />
+                                            پروفایل
                                         </DropdownMenuItem>
                                         <DropdownMenuItem>
-                                            Billing
-                                            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
+                                            <MdCreditCard className="ml-2 text-lg" />
+                                            صورتحساب
                                         </DropdownMenuItem>
                                         <DropdownMenuItem>
-                                            Settings
-                                            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            Keyboard shortcuts
-                                            <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+                                            <MdSettings className="ml-2 text-lg" />
+                                            تنظیمات
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
+
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
-                                        <DropdownMenuItem>Team</DropdownMenuItem>
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>Invite users</DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem>Email</DropdownMenuItem>
-                                                    <DropdownMenuItem>Message</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem>More...</DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
-                                        <DropdownMenuItem>
-                                            New Team
-                                            <DropdownMenuShortcut>⌘+T</DropdownMenuShortcut>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>GitHub</DropdownMenuItem>
-                                    <DropdownMenuItem>Support</DropdownMenuItem>
-                                    <DropdownMenuItem disabled>API</DropdownMenuItem>
+
+
+                                    <DropdownMenuItem>
+                                        <MdSupport className="ml-2 text-lg" />
+                                        پشتیبانی
+                                    </DropdownMenuItem>
+
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem>
-                                        Log out
-                                        <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+                                        <MdLogout className="ml-2 text-lg" />
+                                        خروج
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -168,7 +166,7 @@ export function Navbar() {
 
 
             </div>
-            <NavbarDock/>
+            <NavbarDock />
         </div>
     );
 }

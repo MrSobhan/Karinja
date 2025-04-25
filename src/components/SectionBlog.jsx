@@ -8,9 +8,6 @@ export function SectionBlog() {
   ));
 
   return (
-    // <div className="w-full h-full py-20" dir="ltr">
-    //   <Carousel items={cards} />
-    // </div>
     <CardSlider title="وبلاگ">
       {
         data.map((card, index) => (
