@@ -8,12 +8,14 @@ import Login from "./pages/Login";
 import Singup from "./pages/Singup";
 
 import DevAuth from "@/Components/DevAuth";
+import Dashboard from "./pages/Dashboard/Dashboard";
 
 export default function App() {
   const routes = [
     { path: "/", element: <HomePage /> },
     { path: "/login", element: <Login /> },
-    { path: "/singup", element: <Singup /> }
+    { path: "/singup", element: <Singup /> },
+    { path: "/dashboard", element: <Dashboard /> }
   ]
 
   const navigate = useNavigate();
