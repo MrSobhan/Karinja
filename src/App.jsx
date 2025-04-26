@@ -6,7 +6,7 @@ import HomePage from "./pages/Home";
 import Login from "./pages/Login";
 import Singup from "./pages/Singup";
 
-import DevAutuKarinja from "@/Components/DevAutuKarinja";
+import DevAuth from "@/components/DevAuth";
 import Dashboard from "./pages/Dashboard/Dashboard";
 
 import "./App.css";
@@ -83,13 +83,13 @@ export default function App() {
         LoginUser
       }}
     >
-      <DevAutuKarinja>
+      <DevAuth>
         <Routes>
           {routes.map((route, i) => (
             <Route key={i} path={route.path} element={route.element} />
           ))}
         </Routes>
-      </DevAutuKarinja>
+      </DevAuth>
     </AuthContext>
   );
 }
