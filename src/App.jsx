@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import "./App.css";
 import AuthContext from "@/context/authContext";
 
 import HomePage from "./pages/Home";
 import Login from "./pages/Login";
 import Singup from "./pages/Singup";
 
-import DevAuth from "@/Components/DevAuth";
+import DevAutuKarinja from "@/Components/DevAutuKarinja";
 import Dashboard from "./pages/Dashboard/Dashboard";
+
+import "./App.css";
 
 export default function App() {
   const routes = [
@@ -82,13 +83,13 @@ export default function App() {
         LoginUser
       }}
     >
-      <DevAuth>
+      <DevAutuKarinja>
         <Routes>
           {routes.map((route, i) => (
             <Route key={i} path={route.path} element={route.element} />
           ))}
         </Routes>
-      </DevAuth>
+      </DevAutuKarinja>
     </AuthContext>
   );
 }

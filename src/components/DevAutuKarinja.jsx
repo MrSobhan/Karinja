@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const DevAuth = ({ children }) => {
+const DevAutuKarinja = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const correctPassword = "744";
@@ -45,4 +45,4 @@ const DevAuth = ({ children }) => {
   return children;
 };
 
-export default DevAuth;
+export default DevAutuKarinja;
