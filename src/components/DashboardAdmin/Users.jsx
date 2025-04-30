@@ -1,4 +1,4 @@
-import React  , {useEffect , useState , useContext} from "react"
+import React, { useEffect, useState, useContext } from "react"
 import axios from "axios"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { DataTable } from "@/components/data-table"
+import { LuLoaderCircle } from "react-icons/lu";
 
 import AuthContext from "@/context/authContext"
 
@@ -16,8 +17,8 @@ const userSchema = z.object({
   email: z.string().email("ایمیل نامعتبر است"),
   phone: z.string().min(1, "شماره تلفن الزامی است"),
   username: z.string().min(1, "نام کاربری الزامی است"),
-  role: z.enum(["full_admin", "admin", "employer" , "job_seeker"]),
-  account_status: z.enum(["فعال", "غیرفعال" , "به تعلیق در آمده"]),
+  role: z.enum(["full_admin", "admin", "employer", "job_seeker"]),
+  account_status: z.enum(["فعال", "غیرفعال", "به تعلیق در آمده"]),
   password: z.string().min(8, "رمز عبور باید حداقل ۶ کاراکتر باشد").optional(),
 })
 
@@ -36,6 +37,7 @@ export default function Users() {
     password: "",
   })
   const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false);
 
 
   const fetchUsers = async () => {
@@ -66,6 +68,7 @@ export default function Users() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true);
     try {
       const validatedData = userSchema.parse({
         ...formData,
@@ -75,7 +78,7 @@ export default function Users() {
 
       if (editingUser) {
 
-        await axios.put(`${authContext.baseUrl}/users/${editingUser.id}`, validatedData)
+        await axios.patch(`${authContext.baseUrl}/users/${editingUser.id}`, validatedData)
         toast.success("کاربر با موفقیت ویرایش شد")
       } else {
 
@@ -95,6 +98,7 @@ export default function Users() {
       setEditingUser(null)
       setIsModalOpen(false)
       fetchUsers()
+      setLoading(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors = {}
@@ -105,6 +109,7 @@ export default function Users() {
       } else {
         toast.error("خطا در ذخیره کاربر")
       }
+      setLoading(false);
     }
   }
 
@@ -134,7 +139,7 @@ export default function Users() {
     setIsModalOpen(true)
   }
 
- 
+
   const headers = [
     { key: "full_name", label: "نام کامل" },
     { key: "email", label: "ایمیل" },
@@ -142,7 +147,6 @@ export default function Users() {
     { key: "username", label: "نام کاربری" },
     { key: "role", label: "نقش" },
     { key: "account_status", label: "وضعیت حساب" },
-    { key: "actions", label: "اقدامات" },
   ]
 
   return (
@@ -255,28 +259,24 @@ export default function Users() {
               </div>
             )}
             <DialogFooter>
-              
+
               <Button
                 variant="outline"
                 className="ml-2"
                 onClick={() => {
                   setIsModalOpen(false)
                   setEditingUser(null)
-                  setFormData({
-                    full_name: "",
-                    email: "",
-                    phone: "",
-                    username: "",
-                    role: "viewer",
-                    account_status: "فعال",
-                    password: "",
-                  })
-                  setErrors({})
                 }}
               >
                 لغو
               </Button>
-              <Button type="submit">{editingUser ? "ویرایش" : "افزودن"}</Button>
+              <Button type="submit" disabled={loading}>
+                {loading && (
+                  <LuLoaderCircle className="animate-spin h-4 w-4  text-white"/>
+                )}
+                {editingUser ? "ویرایش" : "افزودن"}
+              </Button>
+
             </DialogFooter>
           </form>
         </DialogContent>
