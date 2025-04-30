@@ -17,9 +17,9 @@ import {
   UsersIcon,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
+import { HiOutlineLocationMarker } from "react-icons/hi";
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -30,123 +30,56 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { Link } from "react-router-dom"
 
 const data = {
   user: {
-    name: "shadcn",
+    name: "محمد کاظمی",
     email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    avatar: "./src/image/user4.webp",
   },
   navMain: [
     {
-      title: "Dashboard",
-      url: "#",
+      title: "داشبورد",
+      url: "/dashboard",
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "مدیر ها",
+      url: "admins",
       icon: ListIcon,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
+      title: "کاربران",
+      url: "users",
+      icon: UsersIcon,
     },
     {
-      title: "Projects",
+      title: "رزومه ها",
       url: "#",
       icon: FolderIcon,
     },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: CameraIcon,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: FileTextIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: FileCodeIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
+
   ],
   navSecondary: [
     {
-      title: "Settings",
+      title: "تنظیمات",
       url: "#",
       icon: SettingsIcon,
     },
     {
-      title: "Get Help",
+      title: "دریافت کمک",
       url: "#",
       icon: HelpCircleIcon,
     },
     {
-      title: "Search",
+      title: "جستجو",
       url: "#",
       icon: SearchIcon,
     },
   ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: DatabaseIcon,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardListIcon,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: FileIcon,
-    },
-  ],
 }
+
 
 export function AppSidebar({
   ...props
@@ -156,18 +89,18 @@ export function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <a href="#">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
+            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5 mb-3"> {/*asChild*/}
+              <Link to="/" className="flex items-center gap-1">
+                <HiOutlineLocationMarker className="text-3xl text-gray-800 dark:text-white" />
+
+                <span className="text-2xl font-semibold moraba">کاراینجا</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

@@ -35,7 +35,7 @@ import {
     MdApi,
     MdSupport,
     MdCode,
-  } from "react-icons/md";
+} from "react-icons/md";
 import { NavbarDock } from "./NavbarDock";
 
 export function Navbar() {
@@ -132,8 +132,10 @@ export function Navbar() {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
                                         <DropdownMenuItem>
-                                            <MdPerson className="ml-2 text-lg" />
-                                            پروفایل
+                                            <Link to={'/dashboard'} className="flex">
+                                                <MdPerson className="ml-2 text-lg" />
+                                                پروفایل
+                                            </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem>
                                             <MdCreditCard className="ml-2 text-lg" />

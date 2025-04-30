@@ -8,11 +8,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { FiSun, FiMoon } from "react-icons/fi"
+import AuthContext from "@/context/authContext";
+import { Button } from "./ui/button";
 
 export function NavSecondary({
   items,
   ...props
 }) {
+  const authContext = React.useContext(AuthContext)
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
@@ -27,6 +31,21 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => authContext.toggleTheme()}>
+              {authContext.darkMode ? (
+                <>
+                  <FiSun className="text-gray-100" />
+                  <span>حالت روشن</span>
+                </>
+              ) : (
+                <>
+                  <FiMoon className="text-gray-900" />
+                  <span>حالت تاریک</span>
+                </>
+              )}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

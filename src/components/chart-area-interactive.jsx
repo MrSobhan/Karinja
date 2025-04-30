@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import {
   Select,
   SelectContent,
@@ -23,6 +23,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@/components/ui/toggle-group"
+
 const chartData = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
@@ -119,18 +120,16 @@ const chartData = [
 
 const chartConfig = {
   visitors: {
-    label: "Visitors",
+    label: "بازدیدکنندگان",
   },
-
   desktop: {
-    label: "Desktop",
+    label: "دسکتاپ",
     color: "hsl(var(--chart-1))",
   },
-
   mobile: {
-    label: "Mobile",
+    label: "موبایل",
     color: "hsl(var(--chart-2))",
-  }
+  },
 }
 
 export function ChartAreaInteractive() {
@@ -158,40 +157,43 @@ export function ChartAreaInteractive() {
   })
 
   return (
-    <Card className="@container/card">
+    <Card className="@container/card" dir="rtl">
       <CardHeader className="relative">
-        <CardTitle>Total Visitors</CardTitle>
-
+        <CardTitle className="text-right">کل بازدیدکنندگان</CardTitle>
         <div className="absolute left-4 top-4">
           <ToggleGroup
             type="single"
             value={timeRange}
             onValueChange={setTimeRange}
             variant="outline"
-            className="@[767px]/card:flex hidden md:flex">
+            className="@[767px]/card:flex hidden md:flex flex-row-reverse"
+          >
             <ToggleGroupItem value="90d" className="h-8 px-2.5">
-              Last 3 months
+              ۳ ماه گذشته
             </ToggleGroupItem>
             <ToggleGroupItem value="30d" className="h-8 px-2.5">
-              Last 30 days
+              ۳۰ روز گذشته
             </ToggleGroupItem>
             <ToggleGroupItem value="7d" className="h-8 px-2.5">
-              Last 7 days
+              ۷ روز گذشته
             </ToggleGroupItem>
           </ToggleGroup>
           <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger className="@[767px]/card:hidden flex w-40 md:hidden" aria-label="Select a value">
-              <SelectValue placeholder="Last 3 months" />
+            <SelectTrigger
+              className="@[767px]/card:hidden flex w-40 md:hidden"
+              aria-label="انتخاب بازه زمانی"
+            >
+              <SelectValue placeholder="۳ ماه گذشته" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
+              <SelectItem value="90d" className="rounded-lg text-right">
+                ۳ ماه گذشته
               </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
+              <SelectItem value="30d" className="rounded-lg text-right">
+                ۳۰ روز گذشته
               </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
+              <SelectItem value="7d" className="rounded-lg text-right">
+                ۷ روز گذشته
               </SelectItem>
             </SelectContent>
           </Select>
@@ -219,38 +221,43 @@ export function ChartAreaInteractive() {
               minTickGap={32}
               tickFormatter={(value) => {
                 const date = new Date(value)
-                return date.toLocaleDateString("en-US", {
+                return date.toLocaleDateString("fa-IR", {
                   month: "short",
                   day: "numeric",
-                });
-              }} />
+                })
+              }}
+            />
             <ChartTooltip
               cursor={false}
               content={
                 <ChartTooltipContent
                   labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
+                    return new Date(value).toLocaleDateString("fa-IR", {
                       month: "short",
                       day: "numeric",
-                    });
+                    })
                   }}
-                  indicator="dot" />
-              } />
+                  indicator="dot"
+                />
+              }
+            />
             <Area
               dataKey="mobile"
               type="natural"
               fill="url(#fillMobile)"
               stroke="var(--color-mobile)"
-              stackId="a" />
+              stackId="a"
+            />
             <Area
               dataKey="desktop"
               type="natural"
               fill="url(#fillDesktop)"
               stroke="var(--color-desktop)"
-              stackId="a" />
+              stackId="a"
+            />
           </AreaChart>
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

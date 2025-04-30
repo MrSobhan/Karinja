@@ -60,7 +60,7 @@ export function SectionHeader() {
                 </p>
                 <Button className="dana hover:-translate-x-3 transition-all">جستجوی کار <HiArrowSmLeft /></Button>
             </div>
-            <WorldMap
+            {/* <WorldMap
                 dots={[
                     {
                         start: {
@@ -102,7 +102,7 @@ export function SectionHeader() {
                         start: { lat: 28.6139, lng: 77.209 }, // New Delhi
                         end: { lat: -1.2921, lng: 36.8219 }, // Nairobi
                     },
-                ]} />
+                ]} /> */}
 
             <div className="lg:absolute lg:bottom-4 lg:left-0 w-full px-3">
 
