@@ -17,7 +17,10 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   MoreVerticalIcon,
+  Trash,
+  SquarePen
 } from "lucide-react"
+
 
 export function DataTable({ headers, data, onEdit, onDelete }) {
   const [rowSelection, setRowSelection] = React.useState({})
@@ -27,7 +30,7 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
     pageSize: 10,
   })
 
-  // تعریف ستون‌های پویا
+
   const columns = React.useMemo(
     () => [
       {
@@ -78,12 +81,12 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
                 <span className="sr-only">باز کردن منو</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                ویرایش
+            <DropdownMenuContent align="right" className="w-32">
+              <DropdownMenuItem className="!pl-10" onClick={() => onEdit(row.original)}>
+                ویرایش <SquarePen />
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(row.original.id)}>
-                حذف
+              <DropdownMenuItem className="!pl-14" onClick={() => onDelete(row.original.id)}>
+                حذف <Trash />
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -156,13 +159,25 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
           <div className="mr-auto flex items-center gap-2 lg:mr-0">
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
+              className="hidden size-8 lg:flex"
+              size="icon"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
             >
-              <span className="sr-only">رفتن به اولین صفحه</span>
-              <ChevronsLeftIcon />
+              <span className="sr-only">رفتن به آخرین صفحه</span>
+              <ChevronsRightIcon />
             </Button>
+            <Button
+              variant="outline"
+              className="size-8"
+              size="icon"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <span className="sr-only">رفتن به صفحه بعدی</span>
+              <ChevronRightIcon />
+            </Button>
+
             <Button
               variant="outline"
               className="size-8"
@@ -175,24 +190,15 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
             </Button>
             <Button
               variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              className="hidden h-8 w-8 p-0 lg:flex"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
             >
-              <span className="sr-only">رفتن به صفحه بعدی</span>
-              <ChevronRightIcon />
+              <span className="sr-only">رفتن به اولین صفحه</span>
+              <ChevronsLeftIcon />
             </Button>
-            <Button
-              variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">رفتن به آخرین صفحه</span>
-              <ChevronsRightIcon />
-            </Button>
+
+
           </div>
           <div className="flex w-fit items-center justify-center text-sm font-medium">
             صفحه {table.getState().pagination.pageIndex + 1} از{" "}

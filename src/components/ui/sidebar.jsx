@@ -492,7 +492,7 @@ const SidebarMenuButton = React.forwardRef((
     <Tooltip>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
       <TooltipContent
-        side="left" // تغییر به left برای RTL
+        side="left"
         align="center"
         hidden={state !== "بسته" || isMobile}
         {...tooltip}

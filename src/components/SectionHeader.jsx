@@ -1,7 +1,8 @@
 import React, { useState, useContext } from "react";
 import WorldMap from "@/components/ui/world-map";
 import { Button } from "./ui/button";
-import { HiArrowSmLeft , HiChevronDown  } from "react-icons/hi";
+import { HiArrowSmLeft, HiChevronDown } from "react-icons/hi";
+import { motion } from 'motion/react';
 import { FiSearch } from "react-icons/fi";
 import { Input } from "@/components/ui/input";
 import {
@@ -45,21 +46,74 @@ export function SectionHeader() {
             label: "اره",
         },
     ]
+
+    const containerVariants = {
+        hidden: { opacity: 0, y: 50 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.8,
+                ease: 'easeOut',
+                when: 'beforeChildren',
+                staggerChildren: 0.2,
+            },
+        },
+    };
+
+    const childVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, ease: 'easeOut' },
+        },
+    };
+
+    const buttonVariants = {
+        hidden: { opacity: 0, x: -20 },
+        visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut', delay: 1.2 } },
+        hover: {
+            x: -10,
+            transition: { duration: 0.3 },
+        },
+    };
     return (
         <div className="container relative max-w-7xl mx-auto py-32 w-full flex flex-col md:flex-row items-center justify-center mt-16">
-            <div className="mx-auto text-start">
-                <p class="antialiased font-sans inline-flex text-xs rounded-full border-dashed border-[2.5px] border-gray-900 dark:border-gray-500 py-1 px-6 dana font-medium">با بیش از 1000 ماشین در سراسر کشور</p>
-                <p className="font-bold text-xl mt-7 md:text-4xl dark:text-white text-black dana">
+            <motion.div
+                className="mx-auto text-start"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+            >
+                <motion.p
+                    className="antialiased font-sans inline-flex text-xs rounded-full border-dashed border-[2.5px] border-gray-900 dark:border-gray-500 py-1 px-6 dana font-medium"
+                    variants={childVariants}
+                >
+                    با بیش از 1000 ماشین در سراسر کشور
+                </motion.p>
+                <motion.p
+                    className="font-bold text-xl mt-7 md:text-4xl dark:text-white text-black dana"
+                    variants={childVariants}
+                >
                     39,728 آگهی استخدام <br />
                     در 334 شهر
-                </p>
-                <p className="font-bold text-xl mb-7 mt-3 md:text-4xl dark:text-white text-black dana">
-                    شغل خودتو با{" "}
-                    <span className="moraba text-">کاراینجا</span>
-                    {" "} پیدا کن!
-                </p>
-                <Button className="dana hover:-translate-x-3 transition-all">جستجوی کار <HiArrowSmLeft /></Button>
-            </div>
+                </motion.p>
+                <motion.p
+                    className="font-bold text-xl mb-7 mt-3 md:text-4xl dark:text-white text-black dana"
+                    variants={childVariants}
+                >
+                    شغل خودتو با <span className="moraba">کاراینجا</span> پیدا کن!
+                </motion.p>
+                <motion.div
+                    variants={buttonVariants}
+                    whileHover="hover"
+                >
+                    <Button className="dana hover:-translate-x-3 transition-all">
+                        جستجوی کار <HiArrowSmLeft />
+                    </Button>
+                </motion.div>
+            </motion.div>
             {/* <WorldMap
                 dots={[
                     {
@@ -108,7 +162,7 @@ export function SectionHeader() {
 
                 <div className='lg:rounded-full lg:w-[60%] dark:bg-black px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar flex items-center justify-evenly gap-7 overflow-hidden flex-wrap lg:flex-nowrap pb-12 lg:pb-4 dark:border-white/[0.2] border border-transparent'>
                     <Input placeholder="عنوان شغلی یا شرکت ..." type="text" />
-                    
+
                     <Popover open={openJobCat} onOpenChange={setOpenJobCat}>
                         <PopoverTrigger asChild>
                             <Button
@@ -120,7 +174,7 @@ export function SectionHeader() {
                                 {valueJobCat
                                     ? frameworks.find((framework) => framework.value === valueJobCat)?.label
                                     : "گروه شغلی"}
-                                <HiChevronDown  className="opacity-50" />
+                                <HiChevronDown className="opacity-50" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[200px] p-0">
@@ -157,7 +211,7 @@ export function SectionHeader() {
                                 {value
                                     ? frameworks.find((framework) => framework.value === value)?.label
                                     : "شهر"}
-                                <HiChevronDown  className="opacity-50" />
+                                <HiChevronDown className="opacity-50" />
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-[200px] p-0">

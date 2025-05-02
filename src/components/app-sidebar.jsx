@@ -89,13 +89,11 @@ export function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="data-[slot=sidebar-menu-button]:!p-1.5 mb-3"> {/*asChild*/}
-              <Link to="/" className="flex items-center gap-1">
-                <HiOutlineLocationMarker className="text-3xl text-gray-800 dark:text-white" />
+            <Link to="/" className="flex items-center gap-1 mb-3">
+              <HiOutlineLocationMarker className="text-3xl text-gray-800 dark:text-white" />
 
-                <span className="text-2xl font-semibold moraba">کاراینجا</span>
-              </Link>
-            </SidebarMenuButton>
+              <span className="text-2xl font-semibold moraba">کاراینجا</span>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

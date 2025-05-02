@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react"
-import axios from "axios"
+import useAxios from '@/hooks/useAxios';
 import { toast } from "sonner"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
@@ -38,12 +38,16 @@ export default function Users() {
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false);
+  const [loadingGetData, setLoadingGetData] = useState(true);
+
+  const axiosInstance = useAxios();
 
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${authContext.baseUrl}/users`)
+      const response = await axiosInstance.get(`/users`)
       setUsers(response.data)
+      setLoadingGetData(false)
     } catch (error) {
       toast.error("خطا در دریافت کاربران")
     }
@@ -78,11 +82,11 @@ export default function Users() {
 
       if (editingUser) {
 
-        await axios.patch(`${authContext.baseUrl}/users/${editingUser.id}`, validatedData)
+        await axiosInstance.patch(`/users/${editingUser.id}`, validatedData)
         toast.success("کاربر با موفقیت ویرایش شد")
       } else {
 
-        await axios.post(`${authContext.baseUrl}/users`, validatedData)
+        await axiosInstance.post(`/users`, validatedData)
         toast.success("کاربر با موفقیت اضافه شد")
       }
 
@@ -116,7 +120,7 @@ export default function Users() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${authContext.baseUrl}/users/${id}`)
+      await axiosInstance.delete(`/users/${id}`)
       toast.success("کاربر با موفقیت حذف شد")
       fetchUsers()
     } catch (error) {
@@ -155,7 +159,13 @@ export default function Users() {
         <h1 className="text-2xl font-semibold moraba">مدیریت کاربران</h1>
         <Button onClick={() => setIsModalOpen(true)}>افزودن کاربر</Button>
       </div>
-      <DataTable headers={headers} data={users} onEdit={handleEdit} onDelete={handleDelete} />
+      {
+        loadingGetData ? (
+          <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10  text-black dark:text-white" />
+        ) : (
+          <DataTable headers={headers} data={users} onEdit={handleEdit} onDelete={handleDelete} />
+        )
+      }
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px]" dir="rtl">
           <DialogHeader>
@@ -272,7 +282,7 @@ export default function Users() {
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading && (
-                  <LuLoaderCircle className="animate-spin h-4 w-4  text-white"/>
+                  <LuLoaderCircle className="animate-spin h-4 w-4  text-white" />
                 )}
                 {editingUser ? "ویرایش" : "افزودن"}
               </Button>
