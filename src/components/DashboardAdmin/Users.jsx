@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react"
 import useAxios from '@/hooks/useAxios';
-import { toast } from "sonner"
+import { toast, Toaster } from "sonner"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -119,8 +119,14 @@ export default function Users() {
 
 
   const handleDelete = async (id) => {
+    // fetch(`${authContext.baseUrl}/users/${id}`).then(res => {
+    //   console.log(res);
+
+    // })
     try {
-      await axiosInstance.delete(`/users/${id}`)
+      const resDelete = await axiosInstance.delete(`/users/${id}`)
+      console.log(resDelete);
+
       toast.success("کاربر با موفقیت حذف شد")
       fetchUsers()
     } catch (error) {
@@ -155,6 +161,7 @@ export default function Users() {
 
   return (
     <div className="p-4 lg:p-6" dir="rtl">
+      <Toaster className="dana"/>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold moraba">مدیریت کاربران</h1>
         <Button onClick={() => setIsModalOpen(true)}>افزودن کاربر</Button>
@@ -282,7 +289,7 @@ export default function Users() {
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading && (
-                  <LuLoaderCircle className="animate-spin h-4 w-4  text-white" />
+                  <LuLoaderCircle className="animate-spin h-4 w-4  text-white dark:text-black" />
                 )}
                 {editingUser ? "ویرایش" : "افزودن"}
               </Button>
