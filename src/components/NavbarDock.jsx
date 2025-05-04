@@ -12,7 +12,7 @@ import {
 export function NavbarDock() {
   const links = [
     {
-      title: "Home",
+      title: "خانه",
       icon: (
         <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
@@ -20,14 +20,14 @@ export function NavbarDock() {
     },
 
     {
-      title: "Products",
+      title: "داشبورد",
       icon: (
         <IconTerminal2 className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "#",
+      href: "/dashboard",
     },
     {
-      title: "Components",
+      title: "وبلاگ",
       icon: (
         <IconNewSection className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
@@ -35,7 +35,7 @@ export function NavbarDock() {
     },
 
     {
-      title: "Changelog",
+      title: "مشاغل",
       icon: (
         <IconExchange className="h-full w-full text-neutral-500 dark:text-neutral-300" />
       ),
@@ -47,8 +47,6 @@ export function NavbarDock() {
   return (
     <div className="flex items-center justify-center fixed bottom-4 left-0 z-50 w-full lg:hidden">
       <FloatingDock
-        
-        
         items={links} />
     </div>
   );

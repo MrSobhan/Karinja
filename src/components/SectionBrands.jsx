@@ -61,7 +61,7 @@ const SectionBrands = ({
   ],
 }) => {
   return (
-    <section className="pb-20">
+    <section className="pb-20 overflow-hidden">
       <div className="container relative flex flex-col items-center text-center">
         <h1 className="my-6 text-2xl font-bold text-pretty lg:text-3xl moraba">
           شرکت هایی که به ما اعتماد کردند

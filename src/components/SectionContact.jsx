@@ -66,7 +66,7 @@ export function SectionContact() {
         style={{
           transform: "translate(-50%, -50%)",
         }}
-        className="absolute top-1/2 left-1/2 -z-10 mx-auto size-[200px] rounded-full border p-16 [mask-image:linear-gradient(to_top,transparent,transparent,white,white,white,transparent,transparent)] md:size-[800px] md:p-32"
+        className="absolute hidden md:block top-1/2 left-1/2 -z-10 mx-auto size-[200px] rounded-full border p-16 [mask-image:linear-gradient(to_top,transparent,transparent,white,white,white,transparent,transparent)] md:size-[800px] md:p-32"
       >
         <div className="size-full rounded-full border p-16 md:p-32">
           <div className="size-full rounded-full border"></div>

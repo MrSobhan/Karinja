@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export function NavMain({
   items
@@ -36,12 +36,12 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <Link to={item.url}>
+              <NavLink to={item.url} end onClick={() => { document.title = `Karinja | ${item.titleSite}` }}>
                 <SidebarMenuButton tooltip={item.title}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </SidebarMenuButton>
-              </Link>
+              </NavLink>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

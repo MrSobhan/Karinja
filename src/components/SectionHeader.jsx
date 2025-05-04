@@ -79,9 +79,9 @@ export function SectionHeader() {
         },
     };
     return (
-        <div className="container relative max-w-7xl mx-auto py-32 w-full flex flex-col md:flex-row items-center justify-center mt-16">
+        <div className="container relative max-w-7xl mx-auto pt-16 lg:py-32 w-full flex flex-col lg:flex-row items-center justify-center mt-16">
             <motion.div
-                className="mx-auto text-start"
+                className="mx-auto text-center lg:text-start"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
@@ -109,12 +109,12 @@ export function SectionHeader() {
                     variants={buttonVariants}
                     whileHover="hover"
                 >
-                    <Button className="dana hover:-translate-x-3 transition-all">
+                    <Button className="dana hover:-translate-x-3 transition-all hidden lg:flex">
                         جستجوی کار <HiArrowSmLeft />
                     </Button>
                 </motion.div>
             </motion.div>
-            {/* <WorldMap
+            <WorldMap
                 dots={[
                     {
                         start: {
@@ -156,12 +156,12 @@ export function SectionHeader() {
                         start: { lat: 28.6139, lng: 77.209 }, // New Delhi
                         end: { lat: -1.2921, lng: 36.8219 }, // Nairobi
                     },
-                ]} /> */}
+                ]}/>
 
-            <div className="lg:absolute lg:bottom-4 lg:left-0 w-full px-3">
+            <div className="lg:absolute lg:bottom-4 lg:left-0 w-full px-3 mt-20 lg:mt-0">
 
-                <div className='lg:rounded-full lg:w-[60%] dark:bg-black px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar flex items-center justify-evenly gap-7 overflow-hidden flex-wrap lg:flex-nowrap pb-12 lg:pb-4 dark:border-white/[0.2] border border-transparent'>
-                    <Input placeholder="عنوان شغلی یا شرکت ..." type="text" />
+                <div className='lg:rounded-full lg:w-[60%] px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar grid grid-cols-4 lg:flex lg:items-center lg:justify-evenly  lg:flex-nowrap gap-7 overflow-hidden pb-12 lg:pb-4 dark:border-white/[0.2] lg:border border-transparent'>
+                    <Input placeholder="عنوان شغلی یا شرکت ..." type="text"  className="col-span-4 lg:col-span-1"/>
 
                     <Popover open={openJobCat} onOpenChange={setOpenJobCat}>
                         <PopoverTrigger asChild>
@@ -169,7 +169,7 @@ export function SectionHeader() {
                                 variant="outline"
                                 role="combobox"
                                 aria-expanded={openJobCat}
-                                className="w-full justify-between"
+                                className="w-full justify-between col-span-2 lg:col-span-1"
                             >
                                 {valueJobCat
                                     ? frameworks.find((framework) => framework.value === valueJobCat)?.label
@@ -206,7 +206,7 @@ export function SectionHeader() {
                                 variant="outline"
                                 role="combobox"
                                 aria-expanded={open}
-                                className="w-full justify-between"
+                                className="w-full justify-between col-span-2 lg:col-span-1"
                             >
                                 {value
                                     ? frameworks.find((framework) => framework.value === value)?.label
@@ -237,7 +237,7 @@ export function SectionHeader() {
                             </Command>
                         </PopoverContent>
                     </Popover>
-                    <button className='rounded-full text-md p-2.5 bg-[#09090b] text-white cursor-pointer dark:border-white/[0.2] border border-transparent'><FiSearch /></button>
+                    <button className='rounded-full text-md w-10 h-10 !px-2.5 col-span-4 lg:col-span-1 flex items-center justify-center mx-auto bg-[#09090b] text-white cursor-pointer dark:border-white/[0.2] border border-transparent'><FiSearch /></button>
                 </div>
 
             </div>

@@ -119,10 +119,7 @@ export default function Users() {
 
 
   const handleDelete = async (id) => {
-    // fetch(`${authContext.baseUrl}/users/${id}`).then(res => {
-    //   console.log(res);
 
-    // })
     try {
       const resDelete = await axiosInstance.delete(`/users/${id}`)
       console.log(resDelete);
@@ -161,7 +158,7 @@ export default function Users() {
 
   return (
     <div className="p-4 lg:p-6" dir="rtl">
-      <Toaster className="dana"/>
+      <Toaster className="dana" />
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold moraba">مدیریت کاربران</h1>
         <Button onClick={() => setIsModalOpen(true)}>افزودن کاربر</Button>

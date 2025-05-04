@@ -41,21 +41,25 @@ const data = {
   navMain: [
     {
       title: "داشبورد",
+      titleSite : "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboardIcon,
     },
     {
       title: "مدیر ها",
-      url: "admins",
+      titleSite : "Admins",
+      url: "/dashboard/admins",
       icon: ListIcon,
     },
     {
       title: "کاربران",
-      url: "users",
+      titleSite : "Users",
+      url: "/dashboard/users",
       icon: UsersIcon,
     },
     {
       title: "رزومه ها",
+      titleSite : "Cv",
       url: "#",
       icon: FolderIcon,
     },
@@ -91,7 +95,6 @@ export function AppSidebar({
           <SidebarMenuItem>
             <Link to="/" className="flex items-center gap-1 mb-3">
               <HiOutlineLocationMarker className="text-3xl text-gray-800 dark:text-white" />
-
               <span className="text-2xl font-semibold moraba">کاراینجا</span>
             </Link>
           </SidebarMenuItem>

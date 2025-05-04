@@ -12,6 +12,7 @@ import { SectionBrands } from '@/components/SectionBrands';
 import { SectionFAQs } from '@/components/SectionFAQs';
 
 const HomePage = () => {
+    document.title = "Karinja"
     return (
         <>
             <Navbar />
