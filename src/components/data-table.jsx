@@ -30,9 +30,7 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
     pageSize: 10,
   })
 
-  console.log(data);
   
-
 
   const columns = React.useMemo(
     () => [
@@ -136,7 +134,7 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
         </TableHeader>
         <TableBody>
           {
-            table.getRowModel().rows?.length ? (
+            table.getRowModel().rows?.length != 0 ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
