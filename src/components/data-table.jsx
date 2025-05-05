@@ -105,7 +105,7 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
       rowSelection,
       pagination,
     },
-    getRowId: (row) => row.id.toString(),
+    getRowId: (row) => row.id?.toString() || Math.random().toString(),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
