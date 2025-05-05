@@ -48,6 +48,8 @@ export default function Users() {
       const response = await axiosInstance.get(`/users`)
       setUsers(response.data)
       setLoadingGetData(false)
+      console.log(response.data);
+      
     } catch (error) {
       toast.error("خطا در دریافت کاربران")
     }
