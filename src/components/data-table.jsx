@@ -1,16 +1,20 @@
-import * as React from "react"
+import * as React from "react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -18,145 +22,125 @@ import {
   ChevronsRightIcon,
   MoreVerticalIcon,
   Trash,
-  SquarePen
-} from "lucide-react"
-
+  SquarePen,
+} from "lucide-react";
 
 export function DataTable({ headers, data, onEdit, onDelete }) {
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [sorting, setSorting] = React.useState([])
-  const [pagination, setPagination] = React.useState({
-    pagediensten: 0,
-    pageSize: 10,
-  })
+  
+  const [selectedRows, setSelectedRows] = React.useState(new Set());
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [pageSize] = React.useState(10);
 
   
+  const toggleRowSelection = (id) => {
+    const newSelection = new Set(selectedRows);
+    if (newSelection.has(id)) {
+      newSelection.delete(id);
+    } else {
+      newSelection.add(id);
+    }
+    setSelectedRows(newSelection);
+  };
 
-  const columns = React.useMemo(
-    () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && "indeterminate")
-              }
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-              aria-label="انتخاب همه"
-            />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(value) => row.toggleSelected(!!value)}
-              aria-label="انتخاب ردیف"
-            />
-          </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
-      ...headers.map((header) => ({
-        accessorKey: header.key,
-        header: () => <div className="text-right">{header.label}</div>,
-        cell: ({ row }) => (
-          <div className="text-right">{row.original[header.key]}</div>
-        ),
-      })),
-      {
-        id: "actions",
-        header: () => <div className="text-right">اقدامات</div>,
-        cell: ({ row }) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
-                size="icon"
-              >
-                <MoreVerticalIcon />
-                <span className="sr-only">باز کردن منو</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="right" className="w-32">
-              <DropdownMenuItem className="!pl-10" onClick={() => onEdit(row.original)}>
-                ویرایش <SquarePen />
-              </DropdownMenuItem>
-              <DropdownMenuItem className="!pl-14" onClick={() => onDelete(row.original.id)}>
-                حذف <Trash />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
-      },
-    ],
-    [headers, onEdit, onDelete]
-  )
+  const toggleSelectAll = () => {
+    if (selectedRows.size === data.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(data.map((item) => item.id)));
+    }
+  };
 
-  const table = useReactTable({
-    data,
-    columns,
-    state: {
-      sorting,
-      rowSelection,
-      pagination,
-    },
-    getRowId: (row) => row.id?.toString() || Math.random().toString(),
-    enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
+  
+  const totalPages = Math.ceil(data.length / pageSize);
+  const paginatedData = data.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  
+  React.useEffect(() => {
+    console.log("Data received:", data);
+  }, [data]);
 
   return (
     <div className="overflow-hidden rounded-lg border" dir="rtl">
       <Table>
         <TableHeader className="sticky top-0 z-10 bg-muted">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} colSpan={header.colSpan} className="text-right">
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
+          <TableRow>
+            <TableHead className="text-right">
+              <Checkbox
+                checked={selectedRows.size === data.length && data.length > 0}
+                onCheckedChange={toggleSelectAll}
+                aria-label="انتخاب همه"
+              />
+            </TableHead>
+            {headers.map((header) => (
+              <TableHead key={header.key} className="text-right">
+                {header.label}
+              </TableHead>
+            ))}
+            <TableHead className="text-right">اقدامات</TableHead>
+          </TableRow>
         </TableHeader>
         <TableBody>
-          {
-            table.getRowModel().rows?.length != 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {
-                    row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))
-                  }
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  بدون نتیجه
+          {paginatedData.length > 0 ? (
+            paginatedData.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={selectedRows.has(row.id) && "selected"}
+              >
+                <TableCell>
+                  <Checkbox
+                    checked={selectedRows.has(row.id)}
+                    onCheckedChange={() => toggleRowSelection(row.id)}
+                    aria-label="انتخاب ردیف"
+                  />
+                </TableCell>
+                {headers.map((header) => (
+                  <TableCell key={header.key} className="text-right">
+                    {row[header.key]}
+                  </TableCell>
+                ))}
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
+                        size="icon"
+                      >
+                        <MoreVerticalIcon />
+                        <span className="sr-only">باز کردن منو</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="right" className="w-32">
+                      <DropdownMenuItem
+                        className="!pl-10"
+                        onClick={() => onEdit(row)}
+                      >
+                        ویرایش <SquarePen />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="!pl-14"
+                        onClick={() => onDelete(row.id)}
+                      >
+                        حذف <Trash />
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
-            )
-          }
+            ))
+          ) : (
+            <TableRow>
+              <TableCell
+                colSpan={headers.length + 2}
+                className="h-24 text-center"
+              >
+                بدون نتیجه
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
       <div className="flex items-center justify-between px-4 py-2">
@@ -166,8 +150,8 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
               variant="outline"
               className="hidden size-8 lg:flex"
               size="icon"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
             >
               <span className="sr-only">رفتن به آخرین صفحه</span>
               <ChevronsRightIcon />
@@ -176,45 +160,41 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
               variant="outline"
               className="size-8"
               size="icon"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              disabled={currentPage === totalPages}
             >
               <span className="sr-only">رفتن به صفحه بعدی</span>
               <ChevronRightIcon />
             </Button>
-
             <Button
               variant="outline"
               className="size-8"
               size="icon"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              disabled={currentPage === 1}
             >
               <span className="sr-only">رفتن به صفحه قبلی</span>
               <ChevronLeftIcon />
             </Button>
             <Button
               variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
+              className="hidden size-8 lg:flex"
+              size="icon"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
             >
               <span className="sr-only">رفتن به اولین صفحه</span>
               <ChevronsLeftIcon />
             </Button>
-
-
           </div>
           <div className="flex w-fit items-center justify-center text-sm font-medium">
-            صفحه {table.getState().pagination.pageIndex + 1} از{" "}
-            {table.getPageCount()}
+            صفحه {currentPage} از {totalPages}
           </div>
         </div>
         <div className="hidden text-sm text-muted-foreground lg:flex mr-0">
-          {table.getFilteredSelectedRowModel().rows.length} از{" "}
-          {table.getFilteredRowModel().rows.length} ردیف انتخاب شده
+          {selectedRows.size} از {data.length} ردیف انتخاب شده
         </div>
       </div>
     </div>
-  )
+  );
 }
