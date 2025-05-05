@@ -46,9 +46,9 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       const response = await axiosInstance.get(`/users`)
+      console.log(response);
       setUsers(response.data)
       setLoadingGetData(false)
-      console.log(response.data);
       
     } catch (error) {
       toast.error("خطا در دریافت کاربران")
