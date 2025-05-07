@@ -11,12 +11,23 @@ import { SectionHero } from '@/components/SectionHero';
 import { SectionBrands } from '@/components/SectionBrands';
 import { SectionFAQs } from '@/components/SectionFAQs';
 
+import PersianCalendar from "@/lib/PersianCalendar";
+
 const HomePage = () => {
     document.title = "Karinja"
+ const handleDateChange = (date)=>{
+    console.log(date.format("jYYYY/jMM/jDD"));
+    
+ }
     return (
         <>
             <Navbar />
             <SectionHeader />
+
+            <div className="w-full flex justify-center">
+            <PersianCalendar onDateChange={handleDateChange}/>
+            </div>
+
             <SectionInsights />
             <SliderCompany />
             <SectionHero />

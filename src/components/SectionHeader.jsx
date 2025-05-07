@@ -114,7 +114,7 @@ export function SectionHeader() {
                     </Button>
                 </motion.div>
             </motion.div>
-            <WorldMap
+            {/* <WorldMap
                 dots={[
                     {
                         start: {
@@ -156,11 +156,13 @@ export function SectionHeader() {
                         start: { lat: 28.6139, lng: 77.209 }, // New Delhi
                         end: { lat: -1.2921, lng: 36.8219 }, // Nairobi
                     },
-                ]}/>
+                ]}/> */}
 
             <div className="lg:absolute lg:bottom-4 lg:left-0 w-full px-3 mt-20 lg:mt-0">
 
                 <div className='lg:rounded-full lg:w-[60%] px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar grid grid-cols-4 lg:flex lg:items-center lg:justify-evenly  lg:flex-nowrap gap-7 overflow-hidden pb-12 lg:pb-4 dark:border-white/[0.2] lg:border border-transparent'>
+                    
+
                     <Input placeholder="عنوان شغلی یا شرکت ..." type="text"  className="col-span-4 lg:col-span-1"/>
 
                     <Popover open={openJobCat} onOpenChange={setOpenJobCat}>

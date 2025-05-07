@@ -46,7 +46,6 @@ export default function Users() {
   const fetchUsers = async () => {
     try {
       const response = await axiosInstance.get(`/users`)
-      console.log(response);
       setUsers(response.data)
       setLoadingGetData(false)
       
@@ -158,6 +157,15 @@ export default function Users() {
     { key: "account_status", label: "وضعیت حساب" },
   ]
 
+  const mappings = {
+    role: {
+      full_admin: "مدیر عامل",
+      admin: "ادمین",
+      employer: "کارمند",
+      job_seeker: "متقاضی",
+    }
+  };
+
   return (
     <div className="p-4 lg:p-6" dir="rtl">
       <Toaster className="dana" />
@@ -169,7 +177,7 @@ export default function Users() {
         loadingGetData ? (
           <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10  text-black dark:text-white" />
         ) : (
-          <DataTable headers={headers} data={users} onEdit={handleEdit} onDelete={handleDelete} />
+          <DataTable headers={headers} data={users} onEdit={handleEdit} onDelete={handleDelete} valueMappings={mappings}/>
         )
       }
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

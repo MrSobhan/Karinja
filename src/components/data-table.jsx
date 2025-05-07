@@ -25,13 +25,11 @@ import {
   SquarePen,
 } from "lucide-react";
 
-export function DataTable({ headers, data, onEdit, onDelete }) {
-  
+export function DataTable({ headers, data, onEdit, onDelete, valueMappings = {} }) {
   const [selectedRows, setSelectedRows] = React.useState(new Set());
   const [currentPage, setCurrentPage] = React.useState(1);
   const [pageSize] = React.useState(10);
 
-  
   const toggleRowSelection = (id) => {
     const newSelection = new Set(selectedRows);
     if (newSelection.has(id)) {
@@ -50,17 +48,22 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
     }
   };
 
-  
   const totalPages = Math.ceil(data.length / pageSize);
   const paginatedData = data.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  
   React.useEffect(() => {
     console.log("Data received:", data);
   }, [data]);
+
+  const getDisplayValue = (key, value) => {
+    if (valueMappings[key] && valueMappings[key][value]) {
+      return valueMappings[key][value];
+    }
+    return value;
+  };
 
   return (
     <div className="overflow-hidden rounded-lg border" dir="rtl">
@@ -96,11 +99,15 @@ export function DataTable({ headers, data, onEdit, onDelete }) {
                     aria-label="انتخاب ردیف"
                   />
                 </TableCell>
-                {headers.map((header) => (
-                  <TableCell key={header.key} className="text-right">
-                    {row[header.key]}
-                  </TableCell>
-                ))}
+                {headers.map((header) => {
+                  // console.log(row[header.key]);
+                  
+                  return (
+                    <TableCell key={header.key} className="text-right">
+                      {getDisplayValue(header.key, row[header.key])}
+                    </TableCell>
+                  )
+                })}
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

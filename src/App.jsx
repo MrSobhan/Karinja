@@ -5,6 +5,9 @@ import { AuthProvider }  from "@/context/authContext";
 import HomePage from "./pages/Home";
 import Login from "./pages/Login";
 import Singup from "./pages/Singup";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import NotFound from "./pages/NotFound";
 
 import DevAuth from "@/components/DevAuth";
 
@@ -29,6 +32,8 @@ export default function App() {
     { path: "/", element: <HomePage /> },
     { path: "/login", element: <Login /> },
     { path: "/singup", element: <Singup /> },
+    { path: "/about", element: <About /> },
+    { path: "/terms", element: <Terms /> },
     {
       path: "/dashboard/*",
       element: (
@@ -41,6 +46,7 @@ export default function App() {
         { path: "users", element: <Users /> }
       ],
     },
+    { path: "/*", element: <NotFound /> },
   ]
 
   const router = createBrowserRouter(routes)

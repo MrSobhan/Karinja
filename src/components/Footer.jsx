@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = ({
     logo = {
         src: "https://www.shadcnblocks.com/images/block/block-1.svg",
@@ -28,10 +30,10 @@ const Footer = ({
         {
             title: "درباره ما",
             links: [
-                { text: "معرفی کاراینجا", url: "#" },
+                { text: "معرفی کاراینجا", url: "/about" },
                 { text: "تماس با ما", url: "#" },
                 { text: "بلاگ کاریابی", url: "#" },
-                { text: "فرصت‌های همکاری", url: "#" },
+                { text: "شرایط و قوانین", url: "/terms" },
             ],
         }
     ],
@@ -58,7 +60,7 @@ const Footer = ({
                             <ul className="space-y-4 text-muted-foreground">
                                 {section.links.map((link, linkIdx) => (
                                     <li key={linkIdx} className="font-medium hover:text-primary">
-                                        <a href={link.url}>{link.text}</a>
+                                        <Link to={link.url}>{link.text}</Link>
                                     </li>
                                 ))}
                             </ul>
