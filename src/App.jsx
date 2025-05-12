@@ -21,6 +21,7 @@ import Dashboard from "@/components/DashboardAdmin/Dashboard";
 import Users from "@/components/DashboardAdmin/Users";
 
 import "./App.css";
+import Resumes from "./components/DashboardAdmin/Resumes";
 
 
 export default function App() {
@@ -43,7 +44,8 @@ export default function App() {
       ),
       children: [
         { path: "", element: <Dashboard /> },
-        { path: "users", element: <Users /> }
+        { path: "users", element: <Users /> },
+        { path: "resumes", element: <Resumes /> }
       ],
     },
     { path: "/*", element: <NotFound /> },

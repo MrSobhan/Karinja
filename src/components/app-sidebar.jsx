@@ -60,7 +60,7 @@ const data = {
     {
       title: "رزومه ها",
       titleSite : "Cv",
-      url: "#",
+      url: "/dashboard/resumes",
       icon: FolderIcon,
     },
 
