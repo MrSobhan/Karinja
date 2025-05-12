@@ -1,4 +1,5 @@
-# Chatbot
+# Karinja
+
 
 This project is a form for a chatbot application that allows users to interact with the chatbot. The form is designed to provide a simple and effective user experience.
 
