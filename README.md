@@ -1,5 +1,6 @@
 # Karinja
 
+<img src="https://s33.picofile.com/file/8484711326/Screenshot_2025_05_26_214525.png" title="Karinja">
 
 This project is a form for a chatbot application that allows users to interact with the chatbot. The form is designed to provide a simple and effective user experience.
 
