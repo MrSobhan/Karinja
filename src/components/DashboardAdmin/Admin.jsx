@@ -6,33 +6,32 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter  ,DialogDescription  } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter ,DialogDescription } from "@/components/ui/dialog"
 import { DataTable } from "@/components/data-table"
 import { LuLoaderCircle } from "react-icons/lu";
-
 import AuthContext from "@/context/authContext"
 
-const userSchema = z.object({
+const adminSchema = z.object({
   full_name: z.string().min(1, "نام کامل الزامی است"),
   email: z.string().email("ایمیل نامعتبر است"),
   phone: z.string().min(1, "شماره تلفن الزامی است"),
   username: z.string().min(1, "نام کاربری الزامی است"),
-  role: z.enum(["full_admin", "admin", "employer", "job_seeker"]),
+  role: z.enum(["full_admin", "admin"]),
   account_status: z.enum(["فعال", "غیر فعال", "به تعلیق در آمده"]),
   password: z.string().min(4, "رمز عبور باید حداقل 4 کاراکتر باشد").optional(),
 })
 
-export default function Users() {
-  const [users, setUsers] = useState([])
+export default function Admin() {
+  const [admins, setAdmins] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingUser, setEditingUser] = useState(null)
+  const [editingAdmin, setEditingAdmin] = useState(null)
   const authContext = useContext(AuthContext);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
     phone: "",
     username: "",
-    role: "job_seeker",
+    role: "admin",
     account_status: "فعال",
     password: "",
   })
@@ -46,24 +45,25 @@ export default function Users() {
   const axiosInstance = useAxios();
 
 
-  const fetchUsers = async () => {
+  const fetchAdmins = async () => {
     try {
-      const response = await axiosInstance.get(`/users/?offset=0&limit=100`)
+      const response = await axiosInstance.get(`/users/search/?role=admin&operator=and&offset=0&limit=100`)
 
-      console.log(response.data);
-      setUsers(response.data)
+      const responseFullAdmins = await axiosInstance.get(`/users/search/?role=full_admin&operator=and&offset=0&limit=100`)
+      setAdmins([
+        ...response.data,
+        ...responseFullAdmins.data
+      ])
       setLoadingGetData(false)
-
     } catch (error) {
       console.log(error);
-
-      toast.error("خطا در دریافت کاربران")
+      toast.error("خطا در دریافت ادمین‌ها")
     }
   }
 
 
   useEffect(() => {
-    fetchUsers()
+    fetchAdmins()
   }, [])
 
 
@@ -82,23 +82,18 @@ export default function Users() {
     e.preventDefault()
     setLoading(true);
     try {
-      const validatedData = userSchema.parse({
+      const validatedData = adminSchema.parse({
         ...formData,
-        password: editingUser ? undefined : formData.password,
+        password: editingAdmin ? undefined : formData.password,
       })
       setErrors({})
 
-      console.log(validatedData);
-
-
-      if (editingUser) {
-
-        await axiosInstance.patch(`/users/${editingUser.id}`, validatedData)
-        toast.success("کاربر با موفقیت ویرایش شد")
+      if (editingAdmin) {
+        await axiosInstance.patch(`/users/${editingAdmin.id}`, validatedData)
+        toast.success("ادمین با موفقیت ویرایش شد")
       } else {
-
         await axiosInstance.post(`/users`, validatedData)
-        toast.success("کاربر با موفقیت اضافه شد")
+        toast.success("ادمین با موفقیت اضافه شد")
       }
 
       setFormData({
@@ -106,13 +101,13 @@ export default function Users() {
         email: "",
         phone: "",
         username: "",
-        role: "job_seeker",
+        role: "admin",
         account_status: "فعال",
         password: "",
       })
-      setEditingUser(null)
+      setEditingAdmin(null)
       setIsModalOpen(false)
-      fetchUsers()
+      fetchAdmins()
       setLoading(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -122,15 +117,11 @@ export default function Users() {
         })
         setErrors(fieldErrors)
       } else {
-        toast.error("خطا در ذخیره کاربر")
+        toast.error("خطا در ذخیره ادمین")
       }
       setLoading(false);
     }
   }
-
-    ;
-
-
 
   const handleDeleteClick = (id) => {
     setDeleteTargetId(id);
@@ -140,12 +131,10 @@ export default function Users() {
   const handleConfirmDelete = async () => {
     try {
       const resDelete = await axiosInstance.delete(`/users/${deleteTargetId}`);
-      console.log(resDelete);
-
-      toast.success("کاربر با موفقیت حذف شد");
-      fetchUsers();
+      toast.success("ادمین با موفقیت حذف شد");
+      fetchAdmins();
     } catch (error) {
-      toast.error("خطا در حذف کاربر");
+      toast.error("خطا در حذف ادمین");
     } finally {
       setDeleteDialogOpen(false);
       setDeleteTargetId(null);
@@ -153,15 +142,15 @@ export default function Users() {
   };
 
 
-  const handleEdit = (user) => {
-    setEditingUser(user)
+  const handleEdit = (admin) => {
+    setEditingAdmin(admin)
     setFormData({
-      full_name: user.full_name,
-      email: user.email,
-      phone: user.phone,
-      username: user.username,
-      role: user.role,
-      account_status: user.account_status,
+      full_name: admin.full_name,
+      email: admin.email,
+      phone: admin.phone,
+      username: admin.username,
+      role: admin.role,
+      account_status: admin.account_status,
       password: "",
     })
     setIsModalOpen(true)
@@ -181,8 +170,6 @@ export default function Users() {
     role: {
       full_admin: "مدیر عامل",
       admin: "ادمین",
-      employer: "کارفرما",
-      job_seeker: "کارجو",
     }
   };
 
@@ -190,20 +177,20 @@ export default function Users() {
     <div className="p-4 lg:p-6" dir="rtl">
       <Toaster className="dana" />
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold moraba">مدیریت کاربران</h1>
-        <Button onClick={() => setIsModalOpen(true)}>افزودن کاربر</Button>
+        <h1 className="text-2xl font-semibold moraba">مدیریت ادمین‌ها</h1>
+        <Button onClick={() => setIsModalOpen(true)}>افزودن ادمین</Button>
       </div>
       {
         loadingGetData ? (
           <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10  text-black dark:text-white" />
         ) : (
-          <DataTable headers={headers} data={users} onEdit={handleEdit} onDelete={handleDeleteClick} valueMappings={mappings} />
+          <DataTable headers={headers} data={admins} onEdit={handleEdit} onDelete={handleDeleteClick} valueMappings={mappings} />
         )
       }
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px]" dir="rtl">
           <DialogHeader>
-            <DialogTitle>{editingUser ? "ویرایش کاربر" : "افزودن کاربر"}</DialogTitle>
+            <DialogTitle>{editingAdmin ? "ویرایش ادمین" : "افزودن ادمین"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -263,8 +250,6 @@ export default function Users() {
                 <SelectContent>
                   <SelectItem value="full_admin">مدیر عامل</SelectItem>
                   <SelectItem value="admin">ادمین</SelectItem>
-                  <SelectItem value="employer">کارمند</SelectItem>
-                  <SelectItem value="job_seeker">متغاضی</SelectItem>
                 </SelectContent>
               </Select>
               {errors.role && <p className="text-red-500 text-sm">{errors.role}</p>}
@@ -288,7 +273,7 @@ export default function Users() {
                 <p className="text-red-500 text-sm">{errors.account_status}</p>
               )}
             </div>
-            {!editingUser && (
+            {!editingAdmin && (
               <div className="grid gap-2">
                 <Label htmlFor="password">رمز عبور</Label>
                 <Input
@@ -309,7 +294,7 @@ export default function Users() {
                 className="ml-2"
                 onClick={() => {
                   setIsModalOpen(false)
-                  setEditingUser(null)
+                  setEditingAdmin(null)
                 }}
               >
                 لغو
@@ -318,7 +303,7 @@ export default function Users() {
                 {loading && (
                   <LuLoaderCircle className="animate-spin h-4 w-4  text-white dark:text-black" />
                 )}
-                {editingUser ? "ویرایش" : "افزودن"}
+                {editingAdmin ? "ویرایش" : "افزودن"}
               </Button>
 
             </DialogFooter>
@@ -329,9 +314,9 @@ export default function Users() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>حذف کاربر</DialogTitle>
+            <DialogTitle>حذف ادمین</DialogTitle>
           </DialogHeader>
-          <p className="my-5">آیا مطمئن هستید که می‌خواهید این کاربر را حذف کنید؟</p>
+          <p className="my-5">آیا مطمئن هستید که می‌خواهید این ادمین را حذف کنید؟</p>
           <DialogFooter>
             <Button variant="outline" className="ml-2" onClick={() => setDeleteDialogOpen(false)}>
               انصراف

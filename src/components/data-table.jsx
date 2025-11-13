@@ -109,32 +109,27 @@ export function DataTable({ headers, data, onEdit, onDelete, valueMappings = {} 
                   )
                 })}
                 <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
-                        size="icon"
-                      >
-                        <MoreVerticalIcon />
-                        <span className="sr-only">باز کردن منو</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="right" className="w-32">
-                      <DropdownMenuItem
-                        className="!pl-10"
-                        onClick={() => onEdit(row)}
-                      >
-                        ویرایش <SquarePen />
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="!pl-14"
-                        onClick={() => onDelete(row.id)}
-                      >
-                        حذف <Trash />
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="ghost"
+                      className="size-8 text-blue-600"
+                      size="icon"
+                      onClick={() => onEdit(row)}
+                    >
+                      <SquarePen />
+                      <span className="sr-only">ویرایش</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="size-8 text-red-600"
+                      size="icon"
+                      onClick={() => onDelete(row.id)}
+                    >
+                      <Trash />
+                      <span className="sr-only">حذف</span>
+                    </Button>
+                  </div>
+                
                 </TableCell>
               </TableRow>
             ))

@@ -1,29 +1,95 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { HiOutlineLocationMarker } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     IconBrandGithub,
-    IconBrandGoogle,
-    IconBrandOnlyfans,
+    IconBrandGoogle
 } from "@tabler/icons-react";
+import { toast , Toaster } from "sonner";
+import useAxios from "@/hooks/useAxios";
 
 export default function Signup() {
-    const handleSubmit = (e) => {
+    const navigate = useNavigate();
+    const axiosInstance = useAxios();
+
+    const [form, setForm] = useState({
+        full_name: "",
+        email: "",
+        phone: "",
+        username: "",
+        password: "",
+        role: "job_seeker",
+        account_status: "غیر فعال"
+    });
+
+    const [loading, setLoading] = useState(false);
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("فرم ارسال شد");
+
+        if (form.password !== form.confirmPassword) {
+            toast.error("رمز عبور و تکرار آن یکسان نیستند.");
+            return;
+        }
+        if (
+            !form.full_name ||
+            !form.email ||
+            !form.phone ||
+            !form.username ||
+            !form.password ||
+            !form.role
+        ) {
+            toast.error("لطفا تمام فیلدها (از جمله نقش) را پر کنید.");
+            return;
+        }
+
+        setLoading(true);
+
+        const data = {
+            full_name: form.full_name,
+            email: form.email,
+            phone: form.phone,
+            username: form.username,
+            role: form.role,
+            account_status: "غیر فعال",
+            password: form.password
+        };
+
+        try {
+            const res = await axiosInstance.post("/sign-up/", data, {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+            toast.success("ثبت‌نام با موفقیت انجام شد.");
+            navigate("/login");
+        } catch (err) {
+            if (err.response && err.response.data && err.response.data.detail) {
+                toast.error(err.response.data.detail || "خطایی رخ داده است.");
+            } else {
+                toast.error("خطا در ثبت‌نام، لطفا مجدد تلاش کنید.");
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     const fadeInUp = {
         hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 },
+        visible: { opacity: 1, y: 0 }
     };
 
     return (
         <div className="shadow-input mx-auto w-full max-w-md rounded-none p-4 md:rounded-2xl md:p-8 min-h-screen flex items-center justify-center flex-col">
+            <Toaster className="dana" />
             <motion.div
                 initial="hidden"
                 animate="visible"
@@ -37,87 +103,170 @@ export default function Signup() {
                 </span>
             </motion.div>
 
-            <form className="my-8 p-0 w-3/4 md:w-auto" onSubmit={handleSubmit}>
+            <form className="my-8 p-0 w-full md:w-auto" onSubmit={handleSubmit}>
                 <motion.div
                     initial="hidden"
                     animate="visible"
                     variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    className="mb-4 flex flex-col space-y-2 md:flex-row md:space-y-0 md:gap-x-2"
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="mb-8"
                 >
                     <LabelInputContainer>
-                        <Label htmlFor="firstname">نام</Label>
-                        <Input id="firstname" placeholder=" امیر" type="text" />
-                    </LabelInputContainer>
-                    <LabelInputContainer>
-                        <Label htmlFor="lastname">نام خانوادگی</Label>
-                        <Input id="lastname" placeholder=" رضایی" type="text" />
+                        <Label htmlFor="role">ثبت‌نام به عنوان</Label>
+                        <div className="flex gap-2 mt-2">
+                            <button
+                                type="button"
+                                className={`flex-1 py-2 rounded-md transition border-2 ${
+                                    form.role === "job_seeker"
+                                        ? "bg-black text-white shadow-lg scale-105"
+                                        : "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                }`}
+                                onClick={() => handleChange({ target: { name: "role", value: "job_seeker" } })}
+                            >
+                                کارجو
+                            </button>
+                            <button
+                                type="button"
+                                className={`flex-1 py-2 rounded-md transition border-2 ${
+                                    form.role === "employer"
+                                        ? "bg-black text-white shadow-lg scale-105"
+                                        : "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
+                                }`}
+                                onClick={() => handleChange({ target: { name: "role", value: "employer" } })}
+                            >
+                                کارفرما
+                            </button>
+                        </div>
                     </LabelInputContainer>
                 </motion.div>
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: 0.18 }}
+                    className="mb-4 flex flex-col md:flex-row gap-2"
+                >
+                    <LabelInputContainer className="flex-1">
+                        <Label htmlFor="full_name">نام و نام خانوادگی</Label>
+                        <Input
+                            id="full_name"
+                            name="full_name"
+                            placeholder="مثال: امیر رضایی"
+                            type="text"
+                            value={form.full_name}
+                            onChange={handleChange}
+                        />
+                    </LabelInputContainer>
+                    <LabelInputContainer className="flex-1">
+                        <Label htmlFor="phone">موبایل</Label>
+                        <Input
+                            id="phone"
+                            name="phone"
+                            placeholder="شماره موبایل"
+                            type="text"
+                            value={form.phone}
+                            onChange={handleChange}
+                        />
+                    </LabelInputContainer>
+                </motion.div>
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: 0.21 }}
+                    className="mb-4 flex flex-col md:flex-row gap-2"
+                >
+                    <LabelInputContainer className="flex-1">
+                        <Label htmlFor="username">نام کاربری</Label>
+                        <Input
+                            id="username"
+                            name="username"
+                            placeholder="نام کاربری"
+                            type="text"
+                            value={form.username}
+                            onChange={handleChange}
+                        />
+                    </LabelInputContainer>
+                    <LabelInputContainer className="flex-1">
+                        <Label htmlFor="email">ایمیل</Label>
+                        <Input
+                            id="email"
+                            name="email"
+                            placeholder="example@email.com"
+                            type="email"
+                            value={form.email}
+                            onChange={handleChange}
+                        />
+                    </LabelInputContainer>
+                </motion.div>
+                <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: 0.24 }}
+                    className="mb-8 flex flex-col md:flex-row gap-2"
+                >
+                    <LabelInputContainer className="flex-1">
+                        <Label htmlFor="password">رمز عبور</Label>
+                        <Input
+                            id="password"
+                            name="password"
+                            placeholder="••••••••"
+                            type="password"
+                            value={form.password}
+                            onChange={handleChange}
+                        />
+                    </LabelInputContainer>
+                    <LabelInputContainer className="flex-1">
+                        <Label htmlFor="confirmPassword">تکرار رمز عبور</Label>
+                        <Input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            placeholder="••••••••"
+                            type="password"
+                            value={form.confirmPassword || ""}
+                            onChange={handleChange}
+                        />
+                    </LabelInputContainer>
+                </motion.div>
+                <motion.button
+                    initial="hidden"
+                    animate="visible"
+                    variants={fadeInUp}
+                    transition={{ duration: 0.5, delay: 0.27 }}
+                    className="group/btn bg-black relative block text-sm h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+                    type="submit"
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            در حال ثبت‌نام...
+                        </span>
+                    ) : "ثبت‌نام"}
+                    <BottomGradient />
+                </motion.button>
                 <motion.div
                     initial="hidden"
                     animate="visible"
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                    <LabelInputContainer className="mb-4">
-                        <Label htmlFor="email">ایمیل</Label>
-                        <Input id="email" placeholder="example@email.com" type="email" />
-                    </LabelInputContainer>
-                </motion.div>
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                >
-                    <LabelInputContainer className="mb-4">
-                        <Label htmlFor="password">رمز عبور</Label>
-                        <Input id="password" placeholder="••••••••" type="password" />
-                    </LabelInputContainer>
-                </motion.div>
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                >
-                    <LabelInputContainer className="mb-8">
-                        <Label htmlFor="twitterpassword">رمز عبور تکرار</Label>
-                        <Input id="twitterpassword" placeholder="••••••••" type="password" />
-                    </LabelInputContainer>
-                </motion.div>
-
-                <motion.button
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: 0.6 }}
-                    className="group/btn bg-black relative block h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
-                    type="submit"
-                >
-                    ثبت‌نام
-                    <BottomGradient />
-                </motion.button>
-
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: 0.7 }}
                     className="my-8 h-[1px] w-full bg-gradient-to-r from-transparent via-neutral-300 to-transparent dark:via-neutral-700"
                 />
-
                 <motion.div
                     initial="hidden"
                     animate="visible"
                     variants={fadeInUp}
-                    transition={{ duration: 0.5, delay: 0.8 }}
+                    transition={{ duration: 0.5, delay: 0.32 }}
                     className="flex flex-col space-y-4"
                 >
                     <button
-                        className="group/btn shadow-input relative flex h-10 w-full items-center justify-center gap-x-2 rounded-md bg-gray-50 px-4 font-mediumned an error code$0 text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
-                        type="submit"
+                        className="group/btn shadow-input relative flex h-10 w-full items-center justify-center gap-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
+                        type="button"
+                        disabled
                     >
                         <span className="text-sm text-neutral-700 dark:text-neutral-300">
                             ثبت‌نام با
@@ -127,7 +276,8 @@ export default function Signup() {
                     </button>
                     <button
                         className="group/btn shadow-input relative flex h-10 w-full items-center justify-center gap-x-2 rounded-md bg-gray-50 px-4 font-medium text-black dark:bg-zinc-900 dark:shadow-[0px_0px_1px_1px_#262626]"
-                        type="submit"
+                        type="button"
+                        disabled
                     >
                         <span className="text-sm text-neutral-700 dark:text-neutral-300">
                             ثبت‌نام با
@@ -141,11 +291,11 @@ export default function Signup() {
                 initial="hidden"
                 animate="visible"
                 variants={fadeInUp}
-                transition={{ duration: 0.5, delay: 0.9 }}
+                transition={{ duration: 0.5, delay: 0.37 }}
                 className="text-center mx-auto max-w-[19rem] !font-medium text-gray-600 mt-3 text-sm"
             >
                 حساب کاربری دارید؟{" "}
-                <Link to={'/login'} className="inline text-blue-gray-900">
+                <Link to={"/login"} className="inline text-blue-gray-900">
                     وارد شوید
                 </Link>
             </motion.p>

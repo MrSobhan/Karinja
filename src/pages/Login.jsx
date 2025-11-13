@@ -1,22 +1,47 @@
-import React from "react";
+import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { HiOutlineLocationMarker } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
     IconBrandGithub,
     IconBrandGoogle,
 } from "@tabler/icons-react";
 
+import AuthContext from "@/context/authContext";
+import { toast, Toaster } from "sonner";
+
 export default function Login() {
-    const handleSubmit = (e) => {
+    const { LoginUser, user } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("فرم ارسال شد");
+        setLoading(true);
+        const result = await LoginUser(username, password);
+        if (result) {
+            // console.log(result);
+            if (!result.userInfo) {
+                navigate("/company-info");
+                return;
+            }
+
+            if (result.user_status === "غیر فعال") {
+                toast.error("اکانت شما مسدود شده است لطفا تیکت ثبت کنید");
+            }
+
+            navigate("/");
+        } else {
+            toast.error("نام کاربری یا گذرواژه اشتباه است");
+        }
+        setLoading(false);
     };
 
-    // تعریف variants برای انیمیشن
     const fadeInUp = {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0 },
@@ -24,6 +49,7 @@ export default function Login() {
 
     return (
         <div className="shadow-input mx-auto w-full max-w-md rounded-none p-4 md:rounded-2xl md:p-8 min-h-screen flex items-center justify-center flex-col">
+            <Toaster className="dana" />
             <motion.div
                 initial="hidden"
                 animate="visible"
@@ -45,8 +71,14 @@ export default function Login() {
                     transition={{ duration: 0.5, delay: 0.2 }}
                 >
                     <LabelInputContainer className="mb-4">
-                        <Label htmlFor="email">ایمیل</Label>
-                        <Input id="email" placeholder="example@email.com" type="email" />
+                        <Label htmlFor="email">نام کاربری</Label>
+                        <Input
+                            id="username"
+                            placeholder="نام کاربری خود را وارد کنید"
+                            type="text"
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
+                        />
                     </LabelInputContainer>
                 </motion.div>
                 <motion.div
@@ -57,20 +89,37 @@ export default function Login() {
                 >
                     <LabelInputContainer className="mb-4">
                         <Label htmlFor="password">رمز عبور</Label>
-                        <Input id="password" placeholder="••••••••" type="password" />
+                        <Input
+                            id="password"
+                            placeholder="••••••••"
+                            type="password"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                        />
                     </LabelInputContainer>
                 </motion.div>
+
                 <motion.button
                     initial="hidden"
                     animate="visible"
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    className="group/btn bg-black relative block h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+                    className="group/btn bg-black relative text-sm h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset] flex items-center justify-center gap-2"
                     type="submit"
+                    disabled={loading}
                 >
-                    ورود
+                    {loading ? (
+                        <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                            در حال ورود...
+                        </span>
+                    ) : "ورود"}
                     <BottomGradient />
                 </motion.button>
+
 
                 <motion.div
                     initial="hidden"

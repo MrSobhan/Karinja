@@ -11,6 +11,8 @@ import {
 import { FiSun, FiMoon } from "react-icons/fi"
 import AuthContext from "@/context/authContext";
 import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
+
 
 export function NavSecondary({
   items,
@@ -24,10 +26,10 @@ export function NavSecondary({
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url}>
+                <Link to={item.url}>
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

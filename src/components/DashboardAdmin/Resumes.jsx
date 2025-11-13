@@ -239,154 +239,159 @@ export default function Resumes() {
             <DialogTitle>{editingResume ? "ویرایش رزومه" : "افزودن رزومه"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="job_title">عنوان شغلی</Label>
-              <Input
-                id="job_title"
-                name="job_title"
-                value={formData.job_title}
-                onChange={handleInputChange}
-                className={errors.job_title ? "border-red-500" : ""}
-              />
-              {errors.job_title && <p className="text-red-500 text-sm">{errors.job_title}</p>}
+
+            <div className="grid gap-4 grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="job_title">عنوان شغلی</Label>
+                <Input
+                  id="job_title"
+                  name="job_title"
+                  value={formData.job_title}
+                  onChange={handleInputChange}
+                  className={errors.job_title ? "border-red-500" : ""}
+                />
+                {errors.job_title && <p className="text-red-500 text-sm">{errors.job_title}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="professional_summary">خلاصه حرفه‌ای</Label>
+                <Input
+                  id="professional_summary"
+                  name="professional_summary"
+                  value={formData.professional_summary}
+                  onChange={handleInputChange}
+                  className={errors.professional_summary ? "border-red-500" : ""}
+                />
+                {errors.professional_summary && (
+                  <p className="text-red-500 text-sm">{errors.professional_summary}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="employment_status">وضعیت شغلی</Label>
+                <Select
+                  value={formData.employment_status}
+                  onValueChange={(value) => handleSelectChange("employment_status", value)}
+                >
+                  <SelectTrigger id="employment_status">
+                    <SelectValue placeholder="انتخاب وضعیت" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="کارجو">کارجو</SelectItem>
+                    <SelectItem value="شاغل">شاغل</SelectItem>
+                    <SelectItem value="بیکار">بیکار</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.employment_status && (
+                  <p className="text-red-500 text-sm">{errors.employment_status}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="is_visible">قابلیت نمایش</Label>
+                <Switch
+                  id="is_visible"
+                  checked={formData.is_visible}
+                  onCheckedChange={handleSwitchChange}
+                />
+              </div>
+              <div className="grid gap-2 md:col-span-2">
+                <Label htmlFor="user_id">شناسه کاربر</Label>
+                <Input
+                  id="user_id"
+                  name="user_id"
+                  value={formData.user_id}
+                  onChange={handleInputChange}
+                  className={errors.user_id ? "border-red-500" : ""}
+                />
+                {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="professional_summary">خلاصه حرفه‌ای</Label>
-              <Input
-                id="professional_summary"
-                name="professional_summary"
-                value={formData.professional_summary}
-                onChange={handleInputChange}
-                className={errors.professional_summary ? "border-red-500" : ""}
-              />
-              {errors.professional_summary && (
-                <p className="text-red-500 text-sm">{errors.professional_summary}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="employment_status">وضعیت شغلی</Label>
-              <Select
-                value={formData.employment_status}
-                onValueChange={(value) => handleSelectChange("employment_status", value)}
-              >
-                <SelectTrigger id="employment_status">
-                  <SelectValue placeholder="انتخاب وضعیت" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="کارجو">کارجو</SelectItem>
-                  <SelectItem value="شاغل">شاغل</SelectItem>
-                  <SelectItem value="بیکار">بیکار</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.employment_status && (
-                <p className="text-red-500 text-sm">{errors.employment_status}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="is_visible">قابلیت نمایش</Label>
-              <Switch
-                id="is_visible"
-                checked={formData.is_visible}
-                onCheckedChange={handleSwitchChange}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="user_id">شناسه کاربر</Label>
-              <Input
-                id="user_id"
-                name="user_id"
-                value={formData.user_id}
-                onChange={handleInputChange}
-                className={errors.user_id ? "border-red-500" : ""}
-              />
-              {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="residence_province">استان محل سکونت</Label>
-              <Input
-                id="residence_province"
-                name="residence_province"
-                value={personalInfoData.residence_province}
-                onChange={handlePersonalInfoChange}
-                className={errors.residence_province ? "border-red-500" : ""}
-              />
-              {errors.residence_province && (
-                <p className="text-red-500 text-sm">{errors.residence_province}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="residence_address">آدرس محل سکونت</Label>
-              <Input
-                id="residence_address"
-                name="residence_address"
-                value={personalInfoData.residence_address}
-                onChange={handlePersonalInfoChange}
-                className={errors.residence_address ? "border-red-500" : ""}
-              />
-              {errors.residence_address && (
-                <p className="text-red-500 text-sm">{errors.residence_address}</p>
-              )}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="marital_status">وضعیت تاهل</Label>
-              <Select
-                value={personalInfoData.marital_status}
-                onValueChange={(value) => handlePersonalInfoSelectChange("marital_status", value)}
-              >
-                <SelectTrigger id="marital_status">
-                  <SelectValue placeholder="انتخاب وضعیت" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="مجرد">مجرد</SelectItem>
-                  <SelectItem value="متاهل">متاهل</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="birth_year">سال تولد</Label>
-              <Input
-                id="birth_year"
-                name="birth_year"
-                type="number"
-                value={personalInfoData.birth_year}
-                onChange={handlePersonalInfoChange}
-                className={errors.birth_year ? "border-red-500" : ""}
-              />
-              {errors.birth_year && <p className="text-red-500 text-sm">{errors.birth_year}</p>}
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="gender">جنسیت</Label>
-              <Select
-                value={personalInfoData.gender}
-                onValueChange={(value) => handlePersonalInfoSelectChange("gender", value)}
-              >
-                <SelectTrigger id="gender">
-                  <SelectValue placeholder="انتخاب جنسیت" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="مرد">مرد</SelectItem>
-                  <SelectItem value="زن">زن</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="military_service_status">وضعیت خدمت سربازی</Label>
-              <Select
-                value={personalInfoData.military_service_status}
-                onValueChange={(value) =>
-                  handlePersonalInfoSelectChange("military_service_status", value)
-                }
-              >
-                <SelectTrigger id="military_service_status">
-                  <SelectValue placeholder="انتخاب وضعیت" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="انجام شده">انجام شده</SelectItem>
-                  <SelectItem value="معاف">معاف</SelectItem>
-                  <SelectItem value="در حال انجام">در حال انجام</SelectItem>
-                  <SelectItem value="نیاز به انجام">نیاز به انجام</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="residence_province">استان محل سکونت</Label>
+                <Input
+                  id="residence_province"
+                  name="residence_province"
+                  value={personalInfoData.residence_province}
+                  onChange={handlePersonalInfoChange}
+                  className={errors.residence_province ? "border-red-500" : ""}
+                />
+                {errors.residence_province && (
+                  <p className="text-red-500 text-sm">{errors.residence_province}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="residence_address">آدرس محل سکونت</Label>
+                <Input
+                  id="residence_address"
+                  name="residence_address"
+                  value={personalInfoData.residence_address}
+                  onChange={handlePersonalInfoChange}
+                  className={errors.residence_address ? "border-red-500" : ""}
+                />
+                {errors.residence_address && (
+                  <p className="text-red-500 text-sm">{errors.residence_address}</p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="marital_status">وضعیت تاهل</Label>
+                <Select
+                  value={personalInfoData.marital_status}
+                  onValueChange={(value) => handlePersonalInfoSelectChange("marital_status", value)}
+                >
+                  <SelectTrigger id="marital_status">
+                    <SelectValue placeholder="انتخاب وضعیت" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="مجرد">مجرد</SelectItem>
+                    <SelectItem value="متاهل">متاهل</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="birth_year">سال تولد</Label>
+                <Input
+                  id="birth_year"
+                  name="birth_year"
+                  type="number"
+                  value={personalInfoData.birth_year}
+                  onChange={handlePersonalInfoChange}
+                  className={errors.birth_year ? "border-red-500" : ""}
+                />
+                {errors.birth_year && <p className="text-red-500 text-sm">{errors.birth_year}</p>}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="gender">جنسیت</Label>
+                <Select
+                  value={personalInfoData.gender}
+                  onValueChange={(value) => handlePersonalInfoSelectChange("gender", value)}
+                >
+                  <SelectTrigger id="gender">
+                    <SelectValue placeholder="انتخاب جنسیت" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="مرد">مرد</SelectItem>
+                    <SelectItem value="زن">زن</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="military_service_status">وضعیت خدمت سربازی</Label>
+                <Select
+                  value={personalInfoData.military_service_status}
+                  onValueChange={(value) =>
+                    handlePersonalInfoSelectChange("military_service_status", value)
+                  }
+                >
+                  <SelectTrigger id="military_service_status">
+                    <SelectValue placeholder="انتخاب وضعیت" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="انجام شده">انجام شده</SelectItem>
+                    <SelectItem value="معاف">معاف</SelectItem>
+                    <SelectItem value="در حال انجام">در حال انجام</SelectItem>
+                    <SelectItem value="نیاز به انجام">نیاز به انجام</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button

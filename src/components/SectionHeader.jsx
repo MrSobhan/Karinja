@@ -158,7 +158,7 @@ export function SectionHeader() {
                     },
                 ]}/> */}
 
-            <div className="lg:absolute lg:bottom-4 lg:left-0 w-full px-3 mt-20 lg:mt-0">
+            <div className="lg:absolute lg:bottom-4 lg:left-~0 w-full px-3 mt-20 lg:mt-0">
 
                 <div className='lg:rounded-full lg:w-[60%] px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar grid grid-cols-4 lg:flex lg:items-center lg:justify-evenly  lg:flex-nowrap gap-7 overflow-hidden pb-12 lg:pb-4 dark:border-white/[0.2] lg:border border-transparent'>
                     

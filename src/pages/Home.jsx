@@ -24,9 +24,9 @@ const HomePage = () => {
             <Navbar />
             <SectionHeader />
 
-            <div className="w-full flex justify-center">
+            {/* <div className="w-full flex justify-center">
             <PersianCalendar onDateChange={handleDateChange}/>
-            </div>
+            </div> */}
 
             <SectionInsights />
             <SliderCompany />
