@@ -1,4 +1,4 @@
-import  { useContext } from "react"
+import { useContext } from "react"
 import {
   ArrowUpCircleIcon,
   BarChartIcon,
@@ -16,8 +16,12 @@ import {
   SettingsIcon,
   UsersIcon,
   Building2Icon,
-  UserPen ,
-  Bell
+  UserPen,
+  Bell,
+  FileUser,
+  BookText,
+  Brain,
+  BriefcaseBusiness
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -110,6 +114,30 @@ export function AppSidebar({ ...props }) {
             icon: FolderIcon,
           },
           {
+            title: "اطلاعات کارجویان",
+            titleSite: "Job Seeker Personal Informations",
+            url: "/dashboard/job-seeker-personal-informations",
+            icon: FileUser,
+          },
+          {
+            title: "تحصیلات کارجویان",
+            titleSite: "Job Seeker Education",
+            url: "/dashboard/job-seeker-education",
+            icon: BookText,
+          },
+          {
+            title: "مهارت‌های کارجویان",
+            titleSite: "Job Seeker Skill",
+            url: "/dashboard/job-seeker-skills",
+            icon: Brain,
+          },
+          {
+            title: "سوابق شغلی کارجویان",
+            titleSite: "Job Seeker Work Experiences",
+            url: "/dashboard/job-seeker-work-experiences",
+            icon: BriefcaseBusiness,
+          },
+          {
             title: "اطلاعات شرکت ها",
             titleSite: "Employer Company",
             url: "/dashboard/employer-company",
@@ -153,7 +181,7 @@ export function AppSidebar({ ...props }) {
           },
           {
             title: "جستجو",
-            url: "#",
+            url: "/dashboard/search",
             icon: SearchIcon,
           },
         ],
@@ -187,6 +215,30 @@ export function AppSidebar({ ...props }) {
             icon: FolderIcon,
           },
           {
+            title: "اطلاعات کارجویان",
+            titleSite: "Job Seeker Personal Informations",
+            url: "/dashboard/job-seeker-personal-informations",
+            icon: FileUser,
+          },
+          {
+            title: "تحصیلات کارجویان",
+            titleSite: "Job Seeker Education",
+            url: "/dashboard/job-seeker-education",
+            icon: BookText,
+          },
+          {
+            title: "مهارت‌های کارجویان",
+            titleSite: "Job Seeker Skill",
+            url: "/dashboard/job-seeker-skills",
+            icon: Brain,
+          },
+          {
+            title: "سوابق شغلی کارجویان",
+            titleSite: "Job Seeker Work Experiences",
+            url: "/dashboard/job-seeker-work-experiences",
+            icon: BriefcaseBusiness,
+          },
+          {
             title: "اطلاعات شرکت ها",
             titleSite: "Employer Company",
             url: "/dashboard/employer-company",
@@ -202,7 +254,7 @@ export function AppSidebar({ ...props }) {
             title: "در خواست کار",
             titleSite: "Job Application",
             url: "/dashboard/job-application",
-            icon: UserPen ,
+            icon: UserPen,
           },
           {
             title: "اعلان ها",
@@ -224,7 +276,7 @@ export function AppSidebar({ ...props }) {
           },
           {
             title: "جستجو",
-            url: "#",
+            url: "/dashboard/search",
             icon: SearchIcon,
           },
         ],
@@ -305,6 +357,12 @@ export function AppSidebar({ ...props }) {
             icon: LayoutDashboardIcon,
           },
           {
+            title: "اطلاعات شخصی",
+            titleSite: "My Personal Informations",
+            url: "/dashboard/my-personal-informations",
+            icon: UsersIcon,
+          },
+          {
             title: "رزومه من",
             titleSite: "Job Seeker Resumes",
             url: "/dashboard/myresumes",
@@ -348,7 +406,7 @@ export function AppSidebar({ ...props }) {
           },
           {
             title: "جستجو",
-            url: "#",
+            url: "/dashboard/search",
             icon: SearchIcon,
           },
         ],
@@ -382,7 +440,7 @@ export function AppSidebar({ ...props }) {
         },
         {
           title: "جستجو",
-          url: "#",
+          url: "/dashboard/search",
           icon: SearchIcon,
         },
       ],
@@ -414,7 +472,7 @@ export function AppSidebar({ ...props }) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavSecondary items={data.navSecondary} className="mt-auto border-t border-solid border-gray-500/50 pt-3" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

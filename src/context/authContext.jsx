@@ -46,8 +46,8 @@ export function AuthProvider({ children }) {
   const LoginUser = async (username, password) => {
     try {
       const res = await axios.post(`${baseUrl}/login`, {
-        username: "job_seeker",
-        password: "job_seeker"
+        username: "full_admin",
+        password: "admin"
       }, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
       });

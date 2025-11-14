@@ -1,5 +1,4 @@
 import React, { useState, useContext } from "react";
-import WorldMap from "@/components/ui/world-map";
 import { Button } from "./ui/button";
 import { HiArrowSmLeft, HiChevronDown } from "react-icons/hi";
 import { motion } from 'motion/react';
@@ -114,49 +113,33 @@ export function SectionHeader() {
                     </Button>
                 </motion.div>
             </motion.div>
-            {/* <WorldMap
-                dots={[
-                    {
-                        start: {
-                            lat: 64.2008,
-                            lng: -149.4937,
-                        }, // Alaska (Fairbanks)
-                        end: {
-                            lat: 34.0522,
-                            lng: -118.2437,
-                        }, // Los Angeles
-                    },
-                    {
-                        start: {
-                            lat: 18.0,
-                            lng: 60.0,
-                        }, // Iran
-                        end: {
-                            lat: -44.0522,
-                            lng: 138.2437,
-                        }, // Australia
-                    },
-                    {
-                        start: { lat: 64.2008, lng: -149.4937 }, // Alaska (Fairbanks)
-                        end: { lat: -15.7975, lng: -47.8919 }, // Brazil (Brasília)
-                    },
-                    {
-                        start: { lat: -15.7975, lng: -47.8919 }, // Brazil (Brasília)
-                        end: { lat: 38.7223, lng: -9.1393 }, // Lisbon
-                    },
-                    {
-                        start: { lat: 51.5074, lng: -0.1278 }, // London
-                        end: { lat: 28.6139, lng: 77.209 }, // New Delhi
-                    },
-                    {
-                        start: { lat: 28.6139, lng: 77.209 }, // New Delhi
-                        end: { lat: 43.1332, lng: 131.9113 }, // Vladivostok
-                    },
-                    {
-                        start: { lat: 28.6139, lng: 77.209 }, // New Delhi
-                        end: { lat: -1.2921, lng: 36.8219 }, // Nairobi
-                    },
-                ]}/> */}
+
+            <div className="hidden lg:block ml-8 relative">
+                <video
+                    className="dark:hidden block w-full"
+                    src="/src/image/light-world.mp4"
+                    width={340}
+                    height={340}
+                    autoPlay
+                    muted
+                    loop={false}
+                    onEnded={e => e.currentTarget.pause()}
+                    // style={{ background: '#fff' }}
+                    playsInline
+                />
+                <video
+                    className="hidden dark:block w-full"
+                    src="/src/image/dark-world.mp4"
+                    width={340}
+                    height={340}
+                    autoPlay
+                    muted
+                    loop={false}
+                    onEnded={e => e.currentTarget.pause()}
+                    // style={{ background: '#18181b' }}
+                    playsInline
+                />
+            </div>
 
             <div className="lg:absolute lg:bottom-4 lg:left-~0 w-full px-3 mt-20 lg:mt-0">
 

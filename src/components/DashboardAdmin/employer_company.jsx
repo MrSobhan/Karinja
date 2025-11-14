@@ -24,6 +24,21 @@ import { DataTable } from "@/components/data-table";
 import { LuLoaderCircle } from "react-icons/lu";
 import AuthContext from "@/context/authContext";
 
+// Form initial state: all fields empty for "add company" modal
+const initialFormData = {
+    registration_number: "",
+    full_name: "",
+    summary: "",
+    industry: "",
+    ownership_type: "",
+    website_address: "",
+    founded_year: "",
+    employee_count: "",
+    address: "",
+    phone: "",
+    description: "",
+    user_id: "",
+};
 
 const industriesOptions = [
     "کشاورزی",
@@ -86,27 +101,11 @@ const employerCompanySchema = z.object({
     description: z.string().optional()
 });
 
-
-
-
-
 export default function EmployerCompany() {
     const [companies, setCompanies] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCompany, setEditingCompany] = useState(null);
-    const [formData, setFormData] = useState({
-        registration_number: "",
-        full_name: "",
-        summary: "",
-        industry: "",
-        ownership_type: "خصوصی",
-        website_address: "",
-        founded_year: 1400,
-        employee_count: "1-50",
-        address: "",
-        phone: "",
-        description: ""
-    });
+    const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [loadingGetData, setLoadingGetData] = useState(true);
@@ -132,7 +131,6 @@ export default function EmployerCompany() {
 
     useEffect(() => {
         fetchCompanies();
-        
     }, []);
 
     const handleInputChange = (e) => {
@@ -161,20 +159,7 @@ export default function EmployerCompany() {
                 toast.success("شرکت با موفقیت اضافه شد");
             }
 
-            setFormData({
-                registration_number: "",
-                full_name: "",
-                summary: "",
-                industry: "",
-                ownership_type: "خصوصی",
-                website_address: "",
-                founded_year: 1400,
-                employee_count: "1-50",
-                address: "",
-                phone: "",
-                description: "",
-                user_id: "",
-            });
+            setFormData(initialFormData);
             setEditingCompany(null);
             setIsModalOpen(false);
             fetchCompanies();
@@ -218,15 +203,23 @@ export default function EmployerCompany() {
             full_name: company.full_name ?? "",
             summary: company.summary ?? "",
             industry: company.industry ?? "",
-            ownership_type: company.ownership_type ?? "خصوصی",
+            ownership_type: company.ownership_type ?? "",
             website_address: company.website_address ?? "",
-            founded_year: company.founded_year ?? 1400,
-            employee_count: company.employee_count ?? "1-50",
+            founded_year: company.founded_year ?? "",
+            employee_count: company.employee_count ?? "",
             address: company.address ?? "",
             phone: company.phone ?? "",
             description: company.description ?? "",
             user_id: company.user?.id ?? "",
         });
+        setIsModalOpen(true);
+    };
+
+    // Open 'add company' modal: reset formData & editingCompany
+    const handleAddClick = () => {
+        setEditingCompany(null);
+        setFormData(initialFormData);
+        setErrors({});
         setIsModalOpen(true);
     };
 
@@ -263,7 +256,7 @@ export default function EmployerCompany() {
             <Toaster className="dana" />
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-semibold moraba">مدیریت شرکت‌ها</h1>
-                <Button onClick={() => setIsModalOpen(true)}>افزودن شرکت</Button>
+                <Button onClick={handleAddClick}>افزودن شرکت</Button>
             </div>
             {loadingGetData ? (
                 <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10 text-black dark:text-white" />
@@ -467,7 +460,7 @@ export default function EmployerCompany() {
                                 name="description"
                                 value={formData.description}
                                 onChange={handleInputChange}
-                                className={`h-24 p-2 border rounded-md ${errors.description ? "border-red-500" : ""}`}
+                                className={`h-24 p-2 border rounded-md bg-transparent ${errors.description ? "border-red-500" : ""}`}
                             />
                             {errors.description && (
                                 <p className="text-red-500 text-sm">{errors.description}</p>

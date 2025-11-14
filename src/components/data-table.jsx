@@ -56,6 +56,7 @@ export function DataTable({ headers, data, onEdit, onDelete, valueMappings = {} 
 
   React.useEffect(() => {
     console.log("Data received:", data);
+    console.log("Data 222:", headers);
   }, [data]);
 
   const getDisplayValue = (key, value) => {
@@ -100,13 +101,18 @@ export function DataTable({ headers, data, onEdit, onDelete, valueMappings = {} 
                   />
                 </TableCell>
                 {headers.map((header) => {
-                  // console.log(row[header.key]);
-                  
                   return (
                     <TableCell key={header.key} className="text-right">
-                      {getDisplayValue(header.key, row[header.key])}
+                      {header.render
+                        ? header.render(header.key.includes('.') ? header.key.split('.').reduce((obj, k) => obj?.[k], row) : row[header.key], row)
+                        : header.key.includes('.')
+                          ? (() => {
+                              const value = header.key.split('.').reduce((obj, k) => obj?.[k], row);
+                              return getDisplayValue(header.key, value);
+                            })()
+                          : getDisplayValue(header.key, row[header.key])}
                     </TableCell>
-                  )
+                  );
                 })}
                 <TableCell>
                   <div className="flex gap-2">
@@ -129,7 +135,7 @@ export function DataTable({ headers, data, onEdit, onDelete, valueMappings = {} 
                       <span className="sr-only">حذف</span>
                     </Button>
                   </div>
-                
+
                 </TableCell>
               </TableRow>
             ))

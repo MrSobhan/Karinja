@@ -154,9 +154,9 @@ export default function CompaniesDetails() {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-xl mx-auto" dir="rtl">
+    <div className="p-4 lg:p-8 w-full mx-auto" dir="rtl">
       <Toaster className="dana" />
-      <div className="flex justify-between items-center mb-6">
+      <div className="!w-full flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold moraba">اطلاعات شرکت شما</h1>
         <Button variant="secondary" onClick={handleEditClick}>
           {company ? "ویرایش" : "ثبت اطلاعات"}
@@ -168,10 +168,17 @@ export default function CompaniesDetails() {
         </div>
       ) : (
         <div
-          className="rounded-2xl shadow-lg bg-white dark:bg-zinc-900 p-8 border border-zinc-100 dark:border-zinc-800 transition"
+          className="rounded-2xl max-w-5xl mx-auto shadow-lg bg-white dark:bg-zinc-900 p-8 border border-zinc-100 dark:border-zinc-800 transition"
         >
           {company ? (
             <div className="space-y-6">
+              <div className="flex justify-center">
+                <img
+                  src="/src/image/company-svg.svg"
+                  alt="عکس شرکت"
+                  className="object-cover w-52"
+                />
+              </div>
               <ItemRow label="نام شرکت" value={company.full_name} />
               <ItemRow label="شماره ثبت" value={company.registration_number} />
               <ItemRow label="فعالیت(صنعت)" value={company.industry} />
@@ -193,71 +200,89 @@ export default function CompaniesDetails() {
       )}
 
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-[500px]"  dir="rtl">
+        <DialogContent className="sm:max-w-[500px]" dir="rtl">
           <DialogHeader>
             <DialogTitle>{company ? "ویرایش شرکت" : "ثبت شرکت"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleFormSubmit} className="grid grid-cols-1 gap-6 mt-4">
-            <FormGroup
-              label="نام شرکت"
-              id="full_name"
-              value={formData.full_name}
-              onChange={handleInputChange}
-              error={errors.full_name}
-            />
-            <FormGroup
-              label="شماره ثبت"
-              id="registration_number"
-              value={formData.registration_number}
-              onChange={handleInputChange}
-              error={errors.registration_number}
-            />
-            <FormGroup
-              label="خلاصه"
-              id="summary"
-              value={formData.summary}
-              onChange={handleInputChange}
-              error={errors.summary}
-            />
-            <FormSelect
-              label="فعالیت (صنعت)"
-              id="industry"
-              value={formData.industry}
-              options={INDUSTRY_OPTIONS}
-              onChange={val => handleSelectChange("industry", val)}
-              error={errors.industry}
-            />
-            <FormSelect
-              label="نوع مالکیت"
-              id="ownership_type"
-              value={formData.ownership_type}
-              options={OWNERSHIP_OPTIONS}
-              onChange={val => handleSelectChange("ownership_type", val)}
-              error={errors.ownership_type}
-            />
-            <FormGroup
-              label="آدرس وبسایت"
-              id="website_address"
-              value={formData.website_address}
-              onChange={handleInputChange}
-              error={errors.website_address}
-            />
-            <FormGroup
-              label="سال تاسیس"
-              id="founded_year"
-              value={formData.founded_year}
-              onChange={handleInputChange}
-              type="number"
-              error={errors.founded_year}
-            />
-            <FormSelect
-              label="تعداد کارمندان"
-              id="employee_count"
-              value={formData.employee_count}
-              options={EMPLOYEE_OPTIONS}
-              onChange={val => handleSelectChange("employee_count", val)}
-              error={errors.employee_count}
-            />
+
+            {/* نام شرکت و شماره ثبت کنار هم */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormGroup
+                label="نام شرکت"
+                id="full_name"
+                value={formData.full_name}
+                onChange={handleInputChange}
+                error={errors.full_name}
+              />
+              <FormGroup
+                label="شماره ثبت"
+                id="registration_number"
+                value={formData.registration_number}
+                onChange={handleInputChange}
+                error={errors.registration_number}
+              />
+            </div>
+
+            {/* صنعت و نوع مالکیت کنار هم */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormSelect
+                label="فعالیت (صنعت)"
+                id="industry"
+                value={formData.industry}
+                options={INDUSTRY_OPTIONS}
+                onChange={val => handleSelectChange("industry", val)}
+                error={errors.industry}
+              />
+              <FormSelect
+                label="نوع مالکیت"
+                id="ownership_type"
+                value={formData.ownership_type}
+                options={OWNERSHIP_OPTIONS}
+                onChange={val => handleSelectChange("ownership_type", val)}
+                error={errors.ownership_type}
+              />
+            </div>
+
+            {/* سال تاسیس و تعداد کارمندان کنار هم */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormGroup
+                label="سال تاسیس"
+                id="founded_year"
+                value={formData.founded_year}
+                onChange={handleInputChange}
+                type="number"
+                error={errors.founded_year}
+              />
+              <FormSelect
+                label="تعداد کارمندان"
+                id="employee_count"
+                value={formData.employee_count}
+                options={EMPLOYEE_OPTIONS}
+                onChange={val => handleSelectChange("employee_count", val)}
+                error={errors.employee_count}
+              />
+            </div>
+
+            {/* وبسایت و تلفن کنار هم */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormGroup
+                label="آدرس وبسایت"
+                id="website_address"
+                value={formData.website_address}
+                onChange={handleInputChange}
+                error={errors.website_address}
+              />
+              <FormGroup
+                label="تلفن"
+                id="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                error={errors.phone}
+              />
+            </div>
+
+            {/* آدرس، خلاصه و توضیحات هرکدام در یک ردیف مجزا */}
             <FormGroup
               label="آدرس"
               id="address"
@@ -266,11 +291,11 @@ export default function CompaniesDetails() {
               error={errors.address}
             />
             <FormGroup
-              label="تلفن"
-              id="phone"
-              value={formData.phone}
+              label="خلاصه"
+              id="summary"
+              value={formData.summary}
               onChange={handleInputChange}
-              error={errors.phone}
+              error={errors.summary}
             />
             <FormGroup
               label="توضیحات"
@@ -280,6 +305,7 @@ export default function CompaniesDetails() {
               as="textarea"
               error={errors.description}
             />
+
             <DialogFooter>
               <Button
                 variant="outline"
@@ -307,7 +333,7 @@ function ItemRow({ label, value }) {
   return (
     <div className="flex border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-2 last:border-b-0 last:pb-0 last:mb-0">
       <dt className="w-32 text-gray-500 shrink-0 font-medium">{label}:</dt>
-      <dd className="font-semibold text-zinc-800 dark:text-zinc-50 break-words truncate max-w-[280px] whitespace-normal">
+      <dd className="font-semibold text-zinc-800 dark:text-zinc-50 break-words truncate whitespace-normal">
         {value || <span className="text-gray-400">—</span>}
       </dd>
     </div>

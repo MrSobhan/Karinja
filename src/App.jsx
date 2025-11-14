@@ -16,6 +16,7 @@ import DevAuth from "@/components/DevAuth";
 // ? DashboardAdmin
 
 import PAdminPrivate from "@/components/DashboardAdmin/Private/PAdminPrivate";
+import RouteGuard from "@/components/DashboardAdmin/Private/RouteGuard";
 import MainDashboard from "./pages/DashboardAdmin/MainDashboard";
 
 import Dashboard from "@/components/DashboardAdmin/Dashboard";
@@ -33,6 +34,14 @@ import CompanyDetails from "./components/DashboardAdmin/companies_details";
 import MyResumes from "./components/DashboardAdmin/myResumes";
 import MyJobApplications from "./components/DashboardAdmin/my_job_applications";
 import SavedJobs from "./components/DashboardAdmin/saved_jobs";
+
+import JobSeekerPersonalInformations from "./components/DashboardAdmin/job_seeker_personal_informations";
+import JobSeekerEducation from "./components/DashboardAdmin/job_seeker_education";
+import JobSeekerSkills from "./components/DashboardAdmin/job_seeker_skills";
+import JobSeekerWorkExperiences from "./components/DashboardAdmin/job_seeker_work_experiences";
+
+import MyPersonalInformations from "./components/DashboardAdmin/my_personal_informations";
+import Search from "./components/DashboardAdmin/search";
 
 
 export default function App() {
@@ -55,19 +64,158 @@ export default function App() {
         </PAdminPrivate>
       ),
       children: [
-        { path: "", element: <Dashboard /> },
-        { path: "admins", element: <Admin /> },
-        { path: "users", element: <Users /> },
-        { path: "resumes", element: <Resumes /> },
-        { path: "employer-company", element: <EmployerCompany /> },
-        { path: "activity-log", element: <ActivityLog /> },
-        { path: "job-postings", element: <JobPostings /> },
-        { path: "job-application", element: <JobApplications /> },
-        { path: "notifications", element: <Notifications /> },
-        { path: "companies", element: <CompanyDetails /> },
-        { path: "myresumes", element: <MyResumes /> },
-        { path: "my-job-applications", element: <MyJobApplications /> },
-        { path: "saved-jobs", element: <SavedJobs /> },
+        { 
+          path: "", 
+          element: (
+            <RouteGuard>
+              <Dashboard />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "admins", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin"]}>
+              <Admin />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "users", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <Users />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "resumes", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <Resumes />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "employer-company", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <EmployerCompany />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "activity-log", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin"]}>
+              <ActivityLog />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "job-postings", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin", "employer"]}>
+              <JobPostings />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "job-application", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin", "employer"]}>
+              <JobApplications />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "notifications", 
+          element: (
+            <RouteGuard>
+              <Notifications />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "companies", 
+          element: (
+            <RouteGuard allowedRoles={["employer"]}>
+              <CompanyDetails />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "myresumes", 
+          element: (
+            <RouteGuard allowedRoles={["job_seeker"]}>
+              <MyResumes />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "my-job-applications", 
+          element: (
+            <RouteGuard allowedRoles={["job_seeker"]}>
+              <MyJobApplications />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "saved-jobs", 
+          element: (
+            <RouteGuard allowedRoles={["job_seeker"]}>
+              <SavedJobs />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "job-seeker-personal-informations", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <JobSeekerPersonalInformations />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "job-seeker-education", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <JobSeekerEducation />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "job-seeker-skills", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <JobSeekerSkills />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "job-seeker-work-experiences", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin"]}>
+              <JobSeekerWorkExperiences />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "my-personal-informations", 
+          element: (
+            <RouteGuard allowedRoles={["job_seeker"]}>
+              <MyPersonalInformations />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "search", 
+          element: (
+            <RouteGuard allowedRoles={["full_admin", "admin", "job_seeker"]}>
+              <Search />
+            </RouteGuard>
+          ) 
+        },
       ],
     },
     { path: "/*", element: <NotFound /> },

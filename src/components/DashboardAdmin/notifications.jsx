@@ -2,9 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import useAxios from "@/hooks/useAxios";
 import { toast, Toaster } from "sonner";
 import { z } from "zod";
-import {
-  Button,
-} from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +17,26 @@ import { LuLoaderCircle, LuTrash, LuSend, LuCheck } from "react-icons/lu";
 import { CiBellOff } from "react-icons/ci";
 import AuthContext from "@/context/authContext";
 
-// Notification types definition
+const Tabs = ({ tabs, activeTab, onChange }) => (
+  <div className="flex border-b mb-6">
+    {tabs.map((tab) => (
+      <button
+        key={tab.value}
+        onClick={() => onChange(tab.value)}
+        className={
+          `font-bold px-6 py-2 border-b-2 transition
+          ${activeTab === tab.value
+            ? 'border-blue-700 text-blue-700 dark:text-blue-400 dark:border-blue-400 bg-blue-100/50 dark:bg-blue-600/10'
+            : 'border-transparent text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-900'}`
+        }
+        type="button"
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
+);
+
 const NOTIF_TYPES = [
   { value: "اطلاع‌رسانی", label: "اطلاع‌رسانی" },
   { value: "فوری", label: "فوری" },
@@ -29,7 +46,6 @@ const NOTIF_TYPES = [
   { value: "سیستمی", label: "سیستمی" },
 ];
 
-// zod schema update: union of values for type
 const notificationSchema = z.object({
   type: z.enum(NOTIF_TYPES.map(t => t.value)),
   message: z.string().min(1, "پیام لازم است"),
@@ -38,7 +54,6 @@ const notificationSchema = z.object({
 });
 
 const typeColorClass = (type) => {
-  // Assign a color class based on type
   switch (type) {
     case "اطلاع‌رسانی": return "text-sky-600 bg-sky-50 dark:bg-sky-900/20";
     case "فوری": return "text-red-600 bg-red-50 dark:bg-red-900/20";
@@ -55,10 +70,12 @@ const NotificationBox = ({
   onDelete,
   onMarkRead,
   deleting,
-  markingRead
+  markingRead,
+  currentUser,
+  type
 }) => {
   return (
-    <div className={`bg-white dark:bg-zinc-900 rounded-lg shadow flex flex-col md:flex-row gap-4 p-4 border mb-4 ${notif.is_read ? 'opacity-70' : 'border-blue-400'}`}>
+    <div className={`bg-white dark:bg-gray-950/60 rounded-lg shadow flex gap-4 p-4 border mb-4 ${notif.is_read ? 'opacity-70' : 'border-blue-400'}`}>
       <div className="flex-grow">
         <div className="flex gap-2 items-center mb-1">
           <span
@@ -69,29 +86,40 @@ const NotificationBox = ({
             {notif.type}
           </span>
           <span className="text-xs text-gray-500">{new Date(notif.created_at).toLocaleString("fa")}</span>
-          {notif.is_read && <LuCheck className="inline ml-1 text-blue-500" title="خوانده شده"/>}
+          {notif.is_read && <LuCheck className="inline ml-1 text-blue-500" title="خوانده شده" />}
         </div>
-        <div className="font-medium text-zinc-900 dark:text-zinc-100">{notif.message}</div>
-        <div className="mt-2 text-xs text-gray-500">برای: <span className="font-semibold">{notif.user?.full_name}</span> ({notif.user?.username})</div>
+        <div className="font-medium text-zinc-900 dark:text-zinc-100 my-4">{notif.message}</div>
+        <div className="mt-2 text-xs text-gray-500 flex flex-wrap gap-2">
+          {type === "inbox" && notif.sender && notif.sender.username ? (
+            <>
+              ارسال‌کننده: <span className="font-semibold">{notif.sender.full_name}</span> (<span dir="ltr">{notif.sender.username}</span>)
+            </>
+          ) : null}
+          {type === "sent" && notif.user && notif.user.username ? (
+            <>
+              برای: <span className="font-semibold">{notif.user.full_name}</span> (<span dir="ltr">{notif.user.username}</span>)
+            </>
+          ) : null}
+        </div>
       </div>
-      <div className="flex flex-row md:flex-col items-center gap-2 min-w-fit">
-        {!notif.is_read && (
+      <div className="flex items-center gap-2 min-w-fit">
+        {type === "inbox" && !notif.is_read && (
           <Button
-            variant="secondary"
             size="icon"
             disabled={markingRead}
             onClick={() => onMarkRead(notif.id)}
             title="علامت به عنوان خوانده شده"
+            className="bg-green-800/20 text-green-600"
           >
             {markingRead ? <LuLoaderCircle className="animate-spin" /> : <LuCheck />}
           </Button>
         )}
         <Button
-          variant="destructive"
           size="icon"
           disabled={deleting}
           onClick={() => onDelete(notif.id)}
           title="حذف"
+          className="bg-red-800/20 text-red-600"
         >
           {deleting ? <LuLoaderCircle className="animate-spin" /> : <LuTrash />}
         </Button>
@@ -103,6 +131,8 @@ const NotificationBox = ({
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
+
+  const [activeTab, setActiveTab] = useState("inbox");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [usersData, setUsersData] = useState([]);
@@ -122,14 +152,21 @@ const Notifications = () => {
   const axiosInstance = useAxios();
   const { user } = useContext(AuthContext);
 
-  // Check admin access
   const isAdmin = ["admin", "full_admin"].includes(user?.user_role);
 
-  // Fetch all notifications
+  const tabOptionsAdmin = [
+    { value: "inbox", label: "صندوق دریافت" },
+    { value: "sent", label: "صندوق ارسال" },
+  ];
+  const tabOptionsUser = [
+    { value: "inbox", label: "صندوق دریافت" }
+  ];
+  const tabsToShow = isAdmin ? tabOptionsAdmin : tabOptionsUser;
+
   const fetchNotifications = async () => {
     setLoadingList(true);
     try {
-      const res = await axiosInstance.get(`/notifications/?offset=0&limit=100`);
+      const res = await axiosInstance.get(`/notifications`);
       setNotifications(res.data);
     } catch (e) {
       toast.error("خطا در دریافت نوتیفیکیشن‌ها");
@@ -137,7 +174,6 @@ const Notifications = () => {
     setLoadingList(false);
   };
 
-  // Fetch all users
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
@@ -235,28 +271,50 @@ const Notifications = () => {
     setMarkReadTargetId(null);
   };
 
+  const sentList = notifications.filter(n => n.user_id === user?.id);
+  const inboxList = notifications.filter(n => n.sender_id === user?.id && n.user_id !== user?.id);
+
+  useEffect(() => {
+    if (!isAdmin && activeTab === "sent") {
+      setActiveTab("inbox");
+    }
+  }, [isAdmin, activeTab]);
+
   return (
     <div className="p-4 lg:p-8 min-h-[90vh]" dir="rtl">
       <Toaster className="dana" />
       <div className="flex justify-between items-center mb-6">
-        <h1 className="moraba text-2xl font-semibold">لیست اطلاعیه‌ها</h1>
-        {isAdmin && (
-          <Button onClick={openSendModal} className="flex gap-2 items-center bg-gradient-to-l from-indigo-800 to-blue-500 text-white font-semibold hover:scale-105 active:scale-95 transition">
-            <LuSend /> ارسال اعلان
-          </Button>
-        )}
+        <h1 className="moraba text-2xl font-semibold">اعلان‌ها</h1>
+        <div className="flex gap-4 items-center">
+          <span className="text-sm text-gray-600 dark:text-gray-200">
+            {activeTab === "inbox"
+              ? `دریافتی: ${inboxList.length}`
+              : `ارسالی: ${sentList.length}`}
+          </span>
+          {isAdmin && (
+            <Button
+              onClick={openSendModal}
+              className="flex gap-2 items-center bg-gradient-to-l from-indigo-800 to-blue-500 text-white font-semibold hover:scale-105 active:scale-95 transition"
+              type="button"
+            >
+              <LuSend /> ارسال اعلان
+            </Button>
+          )}
+        </div>
       </div>
+      <Tabs tabs={tabsToShow} activeTab={activeTab} onChange={setActiveTab} />
+
       {loadingList ? (
         <LuLoaderCircle className="animate-spin h-7 w-7 mx-auto mt-8" />
       ) : (
-        <div className="grid gap-3 max-w-3xl mx-auto">
-          {notifications.length === 0 ? (
-            <div className="rounded-xl text-center p-12 shadow text-gray-400 flex flex-col items-center justify-center gap-3">
+        <div className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3 mx-auto">
+          {(activeTab === "inbox" ? inboxList : sentList).length === 0 ? (
+            <div className="rounded-xl text-center p-12 shadow text-gray-400 flex flex-col items-center justify-center gap-3 col-span-3">
               <CiBellOff className="mx-auto text-5xl" />
               اعلانی برای نمایش وجود ندارد
             </div>
           ) : (
-            notifications.map((notif) => (
+            (activeTab === "inbox" ? inboxList : sentList).map((notif) => (
               <NotificationBox
                 key={notif.id}
                 notif={notif}
@@ -264,6 +322,8 @@ const Notifications = () => {
                 markingRead={markReadTargetId === notif.id}
                 onDelete={handleDeleteNotif}
                 onMarkRead={handleMarkRead}
+                currentUser={user}
+                type={activeTab}
               />
             ))
           )}
@@ -290,7 +350,6 @@ const Notifications = () => {
                       ...prev,
                       user_search: val,
                     }));
-                    
                   }}
                   disabled={loadingUsers}
                 />

@@ -61,6 +61,7 @@ export default function Resumes() {
   const fetchResumes = async () => {
     try {
       const response = await axiosInstance.get(`/job_seeker_resumes`)
+      
       setResumes(response.data)
       setLoadingGetData(false)
     } catch (error) {
@@ -180,7 +181,7 @@ export default function Resumes() {
     { key: "job_title", label: "عنوان شغلی" },
     { key: "professional_summary", label: "خلاصه حرفه‌ای" },
     { key: "employment_status", label: "وضعیت شغلی" },
-    { key: "is_visible", label: "قابلیت نمایش", render: (value) => (value ? "بله" : "خیر") },
+    { key: "is_visible", label: "قابلیت نمایش", render: (value) => (value ? "✔️" : "➖") },
     { key: "user.full_name", label: "نام کاربر" },
     {
       key: "details",
@@ -209,7 +210,7 @@ export default function Resumes() {
     },
     military_service_status: {
       "انجام شده": "انجام شده",
-      معاف: "معاف",
+      "معاف": "معاف",
       "در حال انجام": "در حال انجام",
       "نیاز به انجام": "نیاز به انجام",
     },
@@ -415,7 +416,7 @@ export default function Resumes() {
         </DialogContent>
       </Dialog>
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="sm:max-w-[600px]" dir="rtl">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader>
             <DialogTitle>جزئیات رزومه</DialogTitle>
           </DialogHeader>

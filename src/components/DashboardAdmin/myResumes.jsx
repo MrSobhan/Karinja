@@ -6,8 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import useAxios from "@/hooks/useAxios";
 import AuthContext from "@/context/authContext";
+import { LuLoaderCircle, LuPencil, LuShieldX } from "react-icons/lu";
+import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PersianCalendar from "@/lib/PersianCalendar";
 
-/* ------------      Zod Schemas      ------------ */
 const resumeSchema = z.object({
   job_title: z.string().min(2, "عنوان شغلی الزامی است"),
   professional_summary: z.string().min(2, "خلاصه الزامی است"),
@@ -51,7 +54,6 @@ const workSchema = z.object({
   description: z.string(),
 });
 
-/* ------------      Main Component      ------------ */
 export default function MyResumes() {
   const { user } = useContext(AuthContext);
   const axiosInstance = useAxios();
@@ -59,22 +61,20 @@ export default function MyResumes() {
   const [loading, setLoading] = useState(true);
   const [resumes, setResumes] = useState([]);
   const [addMode, setAddMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [submitLoading, setSubmitLoading] = useState({});
-
-  // Structured, full resume state
   const [newResume, setNewResume] = useState({
     job_title: "",
     professional_summary: "",
     employment_status: "کارجو",
     is_visible: true,
-    // Step 2: Personal info
     residence_province: "",
     residence_address: "",
     marital_status: "",
     birth_year: "",
     gender: "",
     military_service_status: "",
-    // Step 3: Education
     educations: [
       {
         institution_name: "",
@@ -85,7 +85,6 @@ export default function MyResumes() {
         description: "",
       },
     ],
-    // Step 4: Skills
     skills: [
       {
         title: "",
@@ -96,7 +95,6 @@ export default function MyResumes() {
         certificate_verification_status: "",
       },
     ],
-    // Step 5: Work Experiences
     work_experiences: [
       {
         title: "",
@@ -127,16 +125,8 @@ export default function MyResumes() {
     }
   };
 
-  /* ---------------------------------
-   *           Stepper Control
-   * --------------------------------- */
-
   const nextStep = () => setAddStep(st => st + 1);
   const prevStep = () => setAddStep(st => (st > 0 ? st - 1 : 0));
-
-  /* ---------------------------------
-   *           Form Handlers
-   * --------------------------------- */
 
   // Main fields:
   const handleField = (f, v) => setNewResume(r => ({ ...r, [f]: v }));
@@ -168,13 +158,10 @@ export default function MyResumes() {
     }));
   };
 
-  /* ---------------------------------
-   *      Submit Multi-step Resume
-   * --------------------------------- */
+  // ---------- Add Resume ----------
   const handleAddResume = async e => {
     e.preventDefault();
     setSubmitLoading(prev => ({ ...prev, add: true }));
-
     try {
       const resumeBase = resumeSchema.parse({
         job_title: newResume.job_title,
@@ -185,7 +172,6 @@ export default function MyResumes() {
       });
       const res = await axiosInstance.post("/job_seeker_resumes", resumeBase);
       const resumeId = res.data.id;
-
       const personalInfo = personalInfoSchema.parse({
         residence_province: newResume.residence_province,
         residence_address: newResume.residence_address,
@@ -198,7 +184,6 @@ export default function MyResumes() {
         ...personalInfo,
         job_seeker_resume_id: resumeId,
       });
-
       for (let edu of newResume.educations) {
         const education = educationSchema.parse(edu);
         await axiosInstance.post("/job_seeker_educations", {
@@ -220,7 +205,6 @@ export default function MyResumes() {
           job_seeker_resume_id: resumeId,
         });
       }
-
       toast.success("رزومه حرفه‌ای با موفقیت ثبت شد.");
       setAddMode(false);
       setAddStep(0);
@@ -244,16 +228,169 @@ export default function MyResumes() {
       if (e instanceof z.ZodError) {
         toast.error(e.errors.map(err => err.message).join(" , "));
       } else {
+
         toast.error("خطا در ثبت رزومه حرفه‌ای: " + (e?.response?.data?.detail || e.message));
       }
     }
     setSubmitLoading(prev => ({ ...prev, add: false }));
   };
 
+  // ---------- Edit Resume ----------
+  // Helper: Flat resume data structures
+  function flattenResumeForEdit(resume) {
+    // Compose updatable fields, and fill as much as possible
+    const info = resume.job_seeker_personal_information || {};
+    const educations = resume.job_seeker_educations || [
+      { institution_name: "", degree: "", study_field: "", start_date: "", end_date: "", description: "" },
+    ];
+    const skills = resume.job_seeker_skills || [
+      { title: "", proficiency_level: "", has_certificate: false, certificate_issuing_organization: "", certificate_code: "", certificate_verification_status: "" },
+    ];
+    const works = resume.job_seeker_work_experiences || [
+      { title: "", company_name: "", start_date: "", end_date: "", description: "" },
+    ];
+    return {
+      job_title: resume.job_title || "",
+      professional_summary: resume.professional_summary || "",
+      employment_status: resume.employment_status || "کارجو",
+      is_visible: resume.is_visible ?? true,
+      residence_province: info.residence_province || "",
+      residence_address: info.residence_address || "",
+      marital_status: info.marital_status || "",
+      birth_year: info.birth_year || "",
+      gender: info.gender || "",
+      military_service_status: info.military_service_status || "",
+      educations: educations.length > 0 ? [...educations] : [{ institution_name: "", degree: "", study_field: "", start_date: "", end_date: "", description: "" }],
+      skills: skills.length > 0 ? [...skills] : [{ title: "", proficiency_level: "", has_certificate: false, certificate_issuing_organization: "", certificate_code: "", certificate_verification_status: "" }],
+      work_experiences: works.length > 0 ? [...works] : [{ title: "", company_name: "", start_date: "", end_date: "", description: "" }],
+    };
+  }
 
-  /* ---------------------------------
-   *         Stepper Content
-   * --------------------------------- */
+  const handleEditResume = async e => {
+    e.preventDefault();
+    setSubmitLoading(prev => ({ ...prev, edit: true }));
+    try {
+      // Update resume base
+      const resumeBase = resumeSchema.parse({
+        job_title: newResume.job_title,
+        professional_summary: newResume.professional_summary,
+        employment_status: newResume.employment_status,
+        is_visible: !!newResume.is_visible,
+        user_id: user.user_id,
+      });
+      await axiosInstance.patch(`/job_seeker_resumes/${editId}/`, resumeBase);
+
+      // Update personal information
+      if (editId) {
+        // Fetch related personal info ID
+        let infoId = null;
+        const editResumeObj = resumes.find(r => r.id === editId);
+        if (editResumeObj?.job_seeker_personal_information?.id) {
+          infoId = editResumeObj.job_seeker_personal_information.id;
+        } else {
+          // It shouldn't happen, but avoid crash
+          toast.error("خطا در بروزرسانی اطلاعات فردی (مشخصه رکورد موجود نیست)");
+        }
+        const personalInfo = personalInfoSchema.parse({
+          residence_province: newResume.residence_province,
+          residence_address: newResume.residence_address,
+          marital_status: newResume.marital_status,
+          birth_year: newResume.birth_year,
+          gender: newResume.gender,
+          military_service_status: newResume.military_service_status,
+        });
+        if (infoId) {
+          await axiosInstance.patch(`/job_seeker_personal_informations/${infoId}/`, personalInfo);
+        }
+      }
+
+      // Remove all educations, skills, works related, then add again
+      // (More robust would be granular editing, but for FE simplicity, we "replace all" - if backend allows)
+      if (editId) {
+        // Delete all prev
+        const resumeObj = resumes.find(r => r.id === editId);
+        // Educations
+        for (const ed of resumeObj?.job_seeker_educations || []) {
+          await axiosInstance.delete(`/job_seeker_educations/${ed.id}/`);
+        }
+        for (const skill of resumeObj?.job_seeker_skills || []) {
+          await axiosInstance.delete(`/job_seeker_skills/${skill.id}/`);
+        }
+        for (const w of resumeObj?.job_seeker_work_experiences || []) {
+          await axiosInstance.delete(`/job_seeker_work_experiences/${w.id}/`);
+        }
+
+        // Re-add as new
+        for (let edu of newResume.educations) {
+          const education = educationSchema.parse(edu);
+          await axiosInstance.post("/job_seeker_educations", {
+            ...education,
+            job_seeker_resume_id: editId,
+          });
+        }
+        for (let skill of newResume.skills) {
+          const skillData = skillSchema.parse(skill);
+          await axiosInstance.post("/job_seeker_skills", {
+            ...skillData,
+            job_seeker_resume_id: editId,
+          });
+        }
+        for (let wrk of newResume.work_experiences) {
+          const work = workSchema.parse(wrk);
+          await axiosInstance.post("/job_seeker_work_experiences", {
+            ...work,
+            job_seeker_resume_id: editId,
+          });
+        }
+      }
+
+      toast.success("رزومه با موفقیت ویرایش شد.");
+      setEditMode(false);
+      setAddStep(0);
+      setEditId(null);
+      setNewResume({
+        job_title: "",
+        professional_summary: "",
+        employment_status: "کارجو",
+        is_visible: true,
+        residence_province: "",
+        residence_address: "",
+        marital_status: "",
+        birth_year: "",
+        gender: "",
+        military_service_status: "",
+        educations: [{ institution_name: "", degree: "", study_field: "", start_date: "", end_date: "", description: "" }],
+        skills: [{ title: "", proficiency_level: "", has_certificate: false, certificate_issuing_organization: "", certificate_code: "", certificate_verification_status: "" }],
+        work_experiences: [{ title: "", company_name: "", start_date: "", end_date: "", description: "" }],
+      });
+      fetchResumes();
+    } catch (e) {
+      if (e instanceof z.ZodError) {
+        toast.error(e.errors.map(err => err.message).join(" , "));
+      } else {
+
+        console.log(e.data);
+        toast.error("خطا در ویرایش رزومه: " + (e?.response?.data?.detail || e.message));
+      }
+    }
+    setSubmitLoading(prev => ({ ...prev, edit: false }));
+  };
+
+  // ---------- Delete Resume ----------
+  const handleDeleteResume = async (id) => {
+    try {
+      setSubmitLoading(prev => ({ ...prev, [`del_${id}`]: true }));
+      await axiosInstance.delete(`/job_seeker_resumes/${id}/`);
+      toast.success("رزومه با موفقیت حذف شد.");
+
+      fetchResumes();
+    } catch (e) {
+      toast.error("خطا در حذف رزومه: " + (e?.response?.data?.detail || e.message));
+    } finally {
+      setSubmitLoading(prev => ({ ...prev, [`del_${id}`]: false }));
+    }
+  };
+
   const steps = [
     {
       label: "رزومه",
@@ -271,21 +408,28 @@ export default function MyResumes() {
             value={newResume.professional_summary}
             onChange={e => handleField("professional_summary", e.target.value)}
           />
-          <FormGroup
-            label="وضعیت اشتغال"
-            id="employment_status"
-            value={newResume.employment_status}
-            onChange={e => handleField("employment_status", e.target.value)}
-          />
           <div>
-            <Label htmlFor="is_visible" className="text-zinc-800 dark:text-zinc-200">قابل نمایش</Label>
-            <input
+            <Label htmlFor="employment_status" className="text-zinc-800 dark:text-zinc-200">وضعیت اشتغال</Label>
+            <Select
+              value={newResume.employment_status}
+              onValueChange={value => handleField("employment_status", value)}
+            >
+              <SelectTrigger id="employment_status" className={false ? "border-red-500 mt-1 w-full" : "mt-1 w-full"} >
+                <SelectValue placeholder={`انتخاب ${newResume.employment_status}`} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="کارجو">کارجو</SelectItem>
+                <SelectItem value="به دنبال شغل بهتر">به دنبال شغل بهتر</SelectItem>
+                <SelectItem value="شاغل">شاغل</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center">
+            <Label htmlFor="is_visible" className="text-zinc-800 dark:text-zinc-200 ml-3">قابل نمایش</Label>
+            <Switch
               id="is_visible"
-              type="checkbox"
               checked={!!newResume.is_visible}
-              className="mx-2 accent-blue-600 dark:accent-blue-400"
-              onChange={e => handleField("is_visible", e.target.checked)}
-              style={{ verticalAlign: "middle" }}
+              onCheckedChange={checked => handleField("is_visible", checked)}
             />
           </div>
         </div>
@@ -299,24 +443,71 @@ export default function MyResumes() {
       label: "اطلاعات فردی",
       content: (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <FormGroup
-            label="استان محل سکونت"
-            id="residence_province"
-            value={newResume.residence_province}
-            onChange={e => handleField("residence_province", e.target.value)}
-          />
+          <div>
+            <Label htmlFor="residence_province">استان محل سکونت</Label>
+            <Select
+              value={newResume.residence_province}
+              onValueChange={value => handleField("residence_province", value)}
+            >
+              <SelectTrigger id="residence_province" className="mt-1 w-full" >
+                <SelectValue placeholder="انتخاب استان محل سکونت" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="آذربایجان شرقی">آذربایجان شرقی</SelectItem>
+                <SelectItem value="آذربایجان غربی">آذربایجان غربی</SelectItem>
+                <SelectItem value="اردبیل">اردبیل</SelectItem>
+                <SelectItem value="اصفهان">اصفهان</SelectItem>
+                <SelectItem value="البرز">البرز</SelectItem>
+                <SelectItem value="ایلام">ایلام</SelectItem>
+                <SelectItem value="بوشهر">بوشهر</SelectItem>
+                <SelectItem value="تهران">تهران</SelectItem>
+                <SelectItem value="چهارمحال و بختیاری">چهارمحال و بختیاری</SelectItem>
+                <SelectItem value="خراسان جنوبی">خراسان جنوبی</SelectItem>
+                <SelectItem value="خراسان رضوی">خراسان رضوی</SelectItem>
+                <SelectItem value="خراسان شمالی">خراسان شمالی</SelectItem>
+                <SelectItem value="خوزستان">خوزستان</SelectItem>
+                <SelectItem value="زنجان">زنجان</SelectItem>
+                <SelectItem value="سمنان">سمنان</SelectItem>
+                <SelectItem value="سیستان و بلوچستان">سیستان و بلوچستان</SelectItem>
+                <SelectItem value="فارس">فارس</SelectItem>
+                <SelectItem value="قزوین">قزوین</SelectItem>
+                <SelectItem value="قم">قم</SelectItem>
+                <SelectItem value="کردستان">کردستان</SelectItem>
+                <SelectItem value="کرمان">کرمان</SelectItem>
+                <SelectItem value="کرمانشاه">کرمانشاه</SelectItem>
+                <SelectItem value="کهگیلویه شو بویراحمد">کهگیلویه شو بویراحمد</SelectItem>
+                <SelectItem value="گلستان">گلستان</SelectItem>
+                <SelectItem value="گیلان">گیلان</SelectItem>
+                <SelectItem value="لرستان">لرستان</SelectItem>
+                <SelectItem value="مازندران">مازندران</SelectItem>
+                <SelectItem value="مرکزی">مرکزی</SelectItem>
+                <SelectItem value="هرمزگان">هرمزگان</SelectItem>
+                <SelectItem value="همدان">همدان</SelectItem>
+                <SelectItem value="یزد">یزد</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <FormGroup
             label="آدرس محل سکونت"
             id="residence_address"
             value={newResume.residence_address}
             onChange={e => handleField("residence_address", e.target.value)}
           />
-          <FormGroup
-            label="وضعیت تأهل"
-            id="marital_status"
-            value={newResume.marital_status}
-            onChange={e => handleField("marital_status", e.target.value)}
-          />
+          <div>
+            <Label htmlFor="marital_status">وضعیت تأهل</Label>
+            <Select
+              value={newResume.marital_status}
+              onValueChange={value => handleField("marital_status", value)}
+            >
+              <SelectTrigger id="marital_status" className="mt-1 w-full">
+                <SelectValue placeholder="انتخاب وضعیت تأهل" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="مجرد">مجرد</SelectItem>
+                <SelectItem value="متاهل">متاهل</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <FormGroup
             label="سال تولد"
             id="birth_year"
@@ -324,18 +515,41 @@ export default function MyResumes() {
             value={newResume.birth_year}
             onChange={e => handleField("birth_year", e.target.value)}
           />
-          <FormGroup
-            label="جنسیت"
-            id="gender"
-            value={newResume.gender}
-            onChange={e => handleField("gender", e.target.value)}
-          />
-          <FormGroup
-            label="وضعیت سربازی"
-            id="military_service_status"
-            value={newResume.military_service_status}
-            onChange={e => handleField("military_service_status", e.target.value)}
-          />
+          <div>
+            <Label htmlFor="gender">جنسیت</Label>
+            <Select
+              value={newResume.gender}
+              onValueChange={value => handleField("gender", value)}
+            >
+              <SelectTrigger id="gender" className="mt-1 w-full">
+                <SelectValue placeholder="انتخاب جنسیت" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="مرد">مرد</SelectItem>
+                <SelectItem value="زن">زن</SelectItem>
+                <SelectItem value="سایر">سایر</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="military_service_status">وضعیت سربازی</Label>
+            <Select
+              value={newResume.military_service_status}
+              onValueChange={value => handleField("military_service_status", value)}
+            >
+              <SelectTrigger id="military_service_status" className="mt-1 w-full">
+                <SelectValue placeholder="انتخاب وضعیت سربازی" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="انجام شده">انجام شده</SelectItem>
+                <SelectItem value="در حال انجام">در حال انجام</SelectItem>
+                <SelectItem value="معوق">معوق</SelectItem>
+                <SelectItem value="معاف از خدمت">معاف از خدمت</SelectItem>
+                <SelectItem value="معافیت تحصیلی">معافیت تحصیلی</SelectItem>
+                <SelectItem value="معافیت پزشکی">معافیت پزشکی</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       ),
       isValid: () =>
@@ -394,11 +608,13 @@ export default function MyResumes() {
     },
   ];
 
+  const isEditOrAddMode = addMode || editMode;
+
   if (loading) {
     return (
-      <div className="flex justify-center pt-20 bg-zinc-50 dark:bg-zinc-900 min-h-screen transition-colors">
+      <div className="flex justify-center pt-20 transition-colors">
         <Toaster className="dana" richColors theme="system" />
-        <span className="text-zinc-700 dark:text-zinc-200">در حال بارگذاری...</span>
+        <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10  text-black dark:text-white" />
       </div>
     );
   }
@@ -408,15 +624,21 @@ export default function MyResumes() {
       <Toaster className="dana" richColors theme="system" />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold moraba text-gray-900 dark:text-white transition-colors tracking-tight">رزومه‌های من</h1>
-        {!addMode && (
-          <Button onClick={() => {setAddMode(true); setAddStep(0);}} variant="secondary">
-            ساخت رزومه حرفه‌ای جدید
+        {!isEditOrAddMode && (
+          <Button onClick={() => { setAddMode(true); setAddStep(0); setEditId(null); setEditMode(false); }} variant="secondary">
+            <span className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              ساخت رزومه حرفه‌ای جدید
+            </span>
           </Button>
         )}
       </div>
-      {addMode && (
+      {/* ADD OR EDIT MODAL */}
+      {isEditOrAddMode && (
         <form
-          onSubmit={handleAddResume}
+          onSubmit={editMode ? handleEditResume : handleAddResume}
           className="p-5 md:p-10  mx-auto animate-fadein"
         >
           <div className="mb-8">
@@ -427,46 +649,109 @@ export default function MyResumes() {
           </div>
           <div className="mb-8">{steps[addStep].content}</div>
           <div className="flex gap-3 mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              className="mr-auto  border border-solid border-gray-300"
+              onClick={() => {
+                if (editMode) {
+                  setEditMode(false); setEditId(null);
+                }
+                setAddMode(false);
+                setAddStep(0);
+                setNewResume({
+                  job_title: "",
+                  professional_summary: "",
+                  employment_status: "کارجو",
+                  is_visible: true,
+                  residence_province: "",
+                  residence_address: "",
+                  marital_status: "",
+                  birth_year: "",
+                  gender: "",
+                  military_service_status: "",
+                  educations: [{ institution_name: "", degree: "", study_field: "", start_date: "", end_date: "", description: "" }],
+                  skills: [{ title: "", proficiency_level: "", has_certificate: false, certificate_issuing_organization: "", certificate_code: "", certificate_verification_status: "" }],
+                  work_experiences: [{ title: "", company_name: "", start_date: "", end_date: "", description: "" }],
+                });
+              }}
+            >لغو</Button>
             {addStep > 0 && (
               <Button type="button" variant="outline" onClick={prevStep}>
                 مرحله قبل
               </Button>
             )}
-            {addStep < steps.length-1 && (
+            {addStep < steps.length - 1 && (
               <Button
                 type="button"
                 className="bg-gradient-to-tr from-indigo-500 to-sky-600 text-white px-6"
-                disabled={!steps[addStep].isValid()}
                 onClick={nextStep}
               >
                 مرحله بعد
               </Button>
             )}
-            {addStep === steps.length-1 && (
+            {addStep === steps.length - 1 && (
               <Button
                 type="submit"
                 className="bg-gradient-to-tr from-blue-600 to-fuchsia-700 text-white px-7"
-                disabled={submitLoading.add || !steps[addStep].isValid()}
+                disabled={submitLoading.add || submitLoading.edit || !steps[addStep].isValid()}
               >
-                {submitLoading.add ? "در حال ثبت..." : "ساخت رزومه حرفه‌ای"}
+                {submitLoading.add || submitLoading.edit
+                  ? (editMode ? "در حال ویرایش..." : "در حال ثبت...")
+                  : (editMode ? "ویرایش رزومه" : "ساخت رزومه حرفه‌ای")}
               </Button>
             )}
-            <Button type="button" variant="ghost" className="ml-auto" onClick={() => setAddMode(false)}>لغو</Button>
           </div>
         </form>
       )}
-      {resumes.length === 0 && !addMode && (
+
+      {resumes.length === 0 && !isEditOrAddMode && (
         <div className="text-gray-500 dark:text-gray-400 text-center py-12">
           هنوز رزومه‌ای ثبت نکرده‌اید.
         </div>
       )}
-      {!addMode && resumes.length > 0 && (
-        <div className="space-y-8 max-w-4xl mx-auto">
+      {!isEditOrAddMode && resumes.length > 0 && (
+        <div className="space-y-8 max-w-5xl mx-auto">
           {resumes.map(resume => (
             <div
               key={resume.id}
               className="rounded-2xl shadow-xl bg-white/80 dark:bg-zinc-900/90 p-7 border border-zinc-100 dark:border-zinc-700 transition-colors relative hover:scale-[1.01] hover:shadow-2xl duration-200"
             >
+              <div className="absolute top-5 left-5 flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-indigo-500 text-indigo-700 dark:text-indigo-300 px-3"
+                  onClick={async () => {
+                    setAddMode(false);
+                    setEditMode(true);
+                    setAddStep(0);
+                    setEditId(resume.id);
+                    setNewResume(flattenResumeForEdit(resume));
+                  }}
+                >
+                  <span className="flex items-center gap-1">
+                    <LuPencil />
+                    ویرایش
+                  </span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="border-none text-red-600 hover:bg-red-500/10 px-3"
+                  disabled={!!submitLoading[`del_${resume.id}`]}
+                  onClick={async () => {
+                    if (window.confirm("آیا از حذف این رزومه اطمینان دارید؟")) {
+                      await handleDeleteResume(resume.id);
+                    }
+                  }}
+                >
+                  <span className="flex items-center gap-1">
+                    <LuShieldX />
+                    حذف
+                  </span>
+                </Button>
+              </div>
               <h3 className="font-bold text-xl md:text-2xl text-fuchsia-800 dark:text-fuchsia-300 mb-2">{resume.job_title}</h3>
               <div className="text-zinc-700 dark:text-zinc-200 mb-2">{resume.professional_summary}</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-2">
@@ -490,7 +775,7 @@ export default function MyResumes() {
                       ["سال تولد", resume.job_seeker_personal_information.birth_year],
                       ["جنسیت", resume.job_seeker_personal_information.gender],
                       ["وضعیت سربازی", resume.job_seeker_personal_information.military_service_status],
-                    ].map(([k,v]) => (
+                    ].map(([k, v]) => (
                       <div key={k} className="text-zinc-800 dark:text-zinc-300"><span className="font-bold">{k}:</span> {v}</div>
                     ))}
                   </div>
@@ -500,7 +785,7 @@ export default function MyResumes() {
                 <div className="mt-4">
                   <span className="font-semibold text-lg text-teal-700 dark:text-teal-300">تحصیلات</span>
                   <ul className="list-disc pr-5 mt-2">
-                    {resume.job_seeker_educations.map((e,ei) =>
+                    {resume.job_seeker_educations.map((e, ei) =>
                       <li key={ei} className="text-zinc-700 dark:text-zinc-300">
                         {`${e.institution_name}، ${e.degree} (${e.start_date} - ${e.end_date})`}
                         {e.study_field && <span>، رشته: {e.study_field}</span>}
@@ -550,9 +835,7 @@ export default function MyResumes() {
   );
 }
 
-/* ---------- Stepper and Utilities  -----------*/
 function Stepper({ steps, activeStep }) {
-  // Responsive, beautiful stepper
   return (
     <div className="flex items-center max-w-3xl mx-auto mb-20">
       {steps.map((st, idx) => (
@@ -563,18 +846,18 @@ function Stepper({ steps, activeStep }) {
               idx < activeStep
                 ? "text-sky-600 dark:text-sky-400"
                 : idx === activeStep
-                ? "font-bold text-white p-2 rounded-full shadow"
-                : "text-zinc-400"
+                  ? "font-bold dark:text-white p-2 rounded-full text-black"
+                  : "text-zinc-400"
             ].join(" ")}
           >
             <div
               className={[
-                "rounded-full w-8 h-8 flex items-center justify-center font-bold text-lg mb-2",
+                "rounded-full w-8 h-8 flex items-center justify-center text-lg mb-2",
                 idx === activeStep
-                  ? "bg-sky-600 dark:bg-fuchsia-700 text-white shadow-lg"
+                  ? "bg-black dark:bg-white text-white dark:text-black"
                   : idx < activeStep
-                  ? "bg-green-400 text-white"
-                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500"
+                    ? "bg-green-400 text-white"
+                    : "bg-zinc-200 dark:bg-zinc-800 text-zinc-500"
               ].join(" ")}
             >
               {idx + 1}
@@ -590,7 +873,7 @@ function Stepper({ steps, activeStep }) {
   );
 }
 
-function FormGroup({ label, id, value, onChange, type = "text" }) {
+function FormGroup({ label, id, value, onChange, type = "text", className = "", placeholder = "" }) {
   return (
     <div>
       <Label htmlFor={id} className="text-zinc-800 dark:text-zinc-200 transition-colors font-bold">{label}</Label>
@@ -600,13 +883,13 @@ function FormGroup({ label, id, value, onChange, type = "text" }) {
         value={value}
         onChange={onChange}
         type={type}
-        className="mt-1 dark:placeholder-zinc-400"
+        className={["mt-1 dark:placeholder-zinc-400", className].filter(Boolean).join(" ")}
+        placeholder={placeholder}
       />
     </div>
   );
 }
 
-// For educations, skills, work: dynamic add/remove
 function DynamicSection({
   section,
   title,
@@ -629,36 +912,62 @@ function DynamicSection({
                 value={item.institution_name}
                 onChange={e => onChange(section, idx, "institution_name", e.target.value)}
               />
-              <FormGroup
-                label="مدرک تحصیلی"
-                id={`degree_${idx}`}
-                value={item.degree}
-                onChange={e => onChange(section, idx, "degree", e.target.value)}
-              />
-              <FormGroup
-                label="رشته تحصیلی"
-                id={`study_field_${idx}`}
-                value={item.study_field}
-                onChange={e => onChange(section, idx, "study_field", e.target.value)}
-              />
+              <div>
+                <Label htmlFor={`degree_${idx}`} className="text-zinc-800 dark:text-zinc-200 transition-colors font-bold">
+                  مدرک تحصیلی
+                </Label>
+                <Select
+                  id={`degree_${idx}`}
+                  value={item.degree}
+                  onValueChange={value => onChange(section, idx, "degree", value)}
+                >
+                  <SelectTrigger className="mt-1 w-full">
+                    <SelectValue placeholder="انتخاب مدرک تحصیلی" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="دبستان">دبستان</SelectItem>
+                    <SelectItem value="متوسطه اول">متوسطه اول</SelectItem>
+                    <SelectItem value="دبیرستان">دبیرستان</SelectItem>
+                    <SelectItem value="دیپلم">دیپلم</SelectItem>
+                    <SelectItem value="کاردانی">کاردانی</SelectItem>
+                    <SelectItem value="کارشناسی">کارشناسی</SelectItem>
+                    <SelectItem value="کارشناسی ارشد">کارشناسی ارشد</SelectItem>
+                    <SelectItem value="دکتری">دکتری</SelectItem>
+                    <SelectItem value="سایر">سایر</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <FormGroup
+                  label="رشته تحصیلی"
+                  id={`study_field_${idx}`}
+                  value={item.study_field}
+                  onChange={e => onChange(section, idx, "study_field", e.target.value)}
+                />
+              </div>
               <FormGroup
                 label="تاریخ شروع"
                 id={`start_date_${idx}`}
                 value={item.start_date}
+                placeholder="1404/08/08"
                 onChange={e => onChange(section, idx, "start_date", e.target.value)}
               />
               <FormGroup
                 label="تاریخ پایان"
                 id={`end_date_${idx}`}
                 value={item.end_date}
+                placeholder="1404/08/08"
                 onChange={e => onChange(section, idx, "end_date", e.target.value)}
               />
-              <FormGroup
-                label="توضیحات"
-                id={`description_${idx}`}
-                value={item.description}
-                onChange={e => onChange(section, idx, "description", e.target.value)}
-              />
+              <div className="flex flex-col gap-1 col-span-2">
+                <Label htmlFor={`description_${idx}`}>توضیحات</Label>
+                <textarea
+                  id={`description_${idx}`}
+                  className="mt-1 w-full rounded border border-solid border-gray-300 dark:border-gray-900 dark:bg-zinc-900/50 dark:text-white p-2 resize-y min-h-[80px]"
+                  value={item.description}
+                  onChange={e => onChange(section, idx, "description", e.target.value)}
+                />
+              </div>
             </div>
           )}
           {section === "skills" && (
@@ -669,20 +978,30 @@ function DynamicSection({
                 value={item.title}
                 onChange={e => onChange(section, idx, "title", e.target.value)}
               />
-              <FormGroup
-                label="سطح مهارت"
-                id={`proficiency_level_${idx}`}
-                value={item.proficiency_level}
-                onChange={e => onChange(section, idx, "proficiency_level", e.target.value)}
-              />
               <div>
+                <Label htmlFor={`proficiency_level_${idx}`} className="text-zinc-800 dark:text-zinc-200">سطح مهارت</Label>
+                <Select
+                  value={item.proficiency_level}
+                  onValueChange={value => onChange(section, idx, "proficiency_level", value)}
+                >
+                  <SelectTrigger id={`proficiency_level_${idx}`} className="mt-1 w-full">
+                    <SelectValue placeholder="انتخاب سطح مهارت" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="مبتدی">مبتدی</SelectItem>
+                    <SelectItem value="متوسط">متوسط</SelectItem>
+                    <SelectItem value="حرفه‌ای">حرفه‌ای</SelectItem>
+                    <SelectItem value="در حال یادگیری">در حال یادگیری</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 my-6">
                 <Label className="text-zinc-800 dark:text-zinc-200 font-semibold" htmlFor={`has_certificate_${idx}`}>دارای گواهینامه</Label>
-                <input
+                <Switch
                   id={`has_certificate_${idx}`}
-                  type="checkbox"
-                  className="mx-2 accent-blue-600 dark:accent-blue-400"
                   checked={!!item.has_certificate}
-                  onChange={e => onChange(section, idx, "has_certificate", e.target.checked)}
+                  onCheckedChange={checked => onChange(section, idx, "has_certificate", checked)}
+                  className="mx-2"
                   style={{ verticalAlign: "middle" }}
                 />
               </div>
@@ -700,12 +1019,24 @@ function DynamicSection({
                     value={item.certificate_code}
                     onChange={e => onChange(section, idx, "certificate_code", e.target.value)}
                   />
-                  <FormGroup
-                    label="وضعیت تایید گواهی"
-                    id={`certificate_verification_status_${idx}`}
-                    value={item.certificate_verification_status}
-                    onChange={e => onChange(section, idx, "certificate_verification_status", e.target.value)}
-                  />
+                  <div>
+                    <Label htmlFor={`certificate_verification_status_${idx}`} className="text-zinc-800 dark:text-zinc-200">
+                      وضعیت تایید گواهی
+                    </Label>
+                    <Select
+                      value={item.certificate_verification_status}
+                      onValueChange={value => onChange(section, idx, "certificate_verification_status", value)}
+                    >
+                      <SelectTrigger id={`certificate_verification_status_${idx}`} className="mt-1 w-full">
+                        <SelectValue placeholder="انتخاب وضعیت تایید" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="تایید شده">تایید شده</SelectItem>
+                        <SelectItem value="در انتظار تایید">در انتظار تایید</SelectItem>
+                        <SelectItem value="تایید نشده">تایید نشده</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </>
               )}
             </div>
@@ -728,30 +1059,40 @@ function DynamicSection({
                 label="تاریخ شروع"
                 id={`start_date_${idx}`}
                 value={item.start_date}
+                placeholder="1404/08/08"
                 onChange={e => onChange(section, idx, "start_date", e.target.value)}
               />
               <FormGroup
                 label="تاریخ پایان"
                 id={`end_date_${idx}`}
                 value={item.end_date}
+                placeholder="1404/08/08"
                 onChange={e => onChange(section, idx, "end_date", e.target.value)}
               />
-              <FormGroup
-                label="توضیحات"
-                id={`description_${idx}`}
-                value={item.description}
-                onChange={e => onChange(section, idx, "description", e.target.value)}
-              />
+              <div className="flex flex-col gap-1 col-span-2">
+                <Label htmlFor={`description_${idx}`}>توضیحات</Label>
+                <textarea
+                  id={`description_${idx}`}
+                  className="mt-1 w-full rounded border border-solid border-gray-300 dark:border-gray-900 dark:bg-zinc-900/50 dark:text-white p-2 resize-y min-h-[80px]"
+                  value={item.description}
+                  onChange={e => onChange(section, idx, "description", e.target.value)}
+                />
+              </div>
             </div>
           )}
           {values.length > 1 &&
             <Button
               type="button"
               variant="ghost"
-              className="absolute left-3 top-3 text-red-500 border-0"
+              className="absolute left-3 top-3 text-red-500 border-0 bg-red-600/10 flex items-center justify-center"
               onClick={() => remove(idx)}
             >
-              حذف
+              <span className="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                حذف
+              </span>
             </Button>
           }
         </div>

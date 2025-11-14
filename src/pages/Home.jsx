@@ -15,29 +15,29 @@ import PersianCalendar from "@/lib/PersianCalendar";
 
 const HomePage = () => {
     document.title = "Karinja"
- const handleDateChange = (date)=>{
-    console.log(date.format("jYYYY/jMM/jDD"));
-    
- }
+    const handleDateChange = (date) => {
+        console.log(date.format("jYYYY/jMM/jDD"));
+
+    }
     return (
         <>
             <Navbar />
             <SectionHeader />
 
             {/* <div className="w-full flex justify-center">
-            <PersianCalendar onDateChange={handleDateChange}/>
+                <PersianCalendar onDateChange={handleDateChange} />
             </div> */}
 
             <SectionInsights />
             <SliderCompany />
             <SectionHero />
             <SliderCompany />
-            <SectionFeature/>
+            <SectionFeature />
             <SectionBlog />
-            <SectionContact/>
+            <SectionContact />
             <SectionBrands />
             <SectionFAQs />
-            <Footer/>
+            <Footer />
         </>
     );
 }
