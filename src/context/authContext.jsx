@@ -40,7 +40,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isLogin = () => {
-    return getLocalStorage("token");
+    return Boolean(getLocalStorage("token"));
   };
 
   const LoginUser = async (username, password) => {

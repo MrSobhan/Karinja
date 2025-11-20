@@ -1,91 +1,76 @@
-import React from "react";
-import { Carousel, Card } from "@/components/ui/apple-cards-carousel";
+import React, { useEffect, useState } from "react";
 import CardSlider from "./Slider/Slider";
+import useAxios from "@/hooks/useAxios";
 
-export function SectionBlog() {
-  const cards = data.map((card, index) => (
-    <Card key={card.src} card={card} index={index} />
-  ));
+const RANDOM_IMAGES = [
+  "https://source.unsplash.com/random/400x300?career",
+  "https://source.unsplash.com/random/400x300?work",
+  "https://source.unsplash.com/random/400x300?technology",
+  "https://source.unsplash.com/random/400x300?office",
+  "https://source.unsplash.com/random/400x300?blog",
+  "https://source.unsplash.com/random/400x300?business",
+  "https://source.unsplash.com/random/400x300?writing",
+  "https://source.unsplash.com/random/400x300?meeting",
+];
 
+function getRandomImage(idx) {
+  return RANDOM_IMAGES[idx % RANDOM_IMAGES.length];
+}
+
+function BlogCard({ post, index }) {
   return (
-    <CardSlider title="وبلاگ">
-      {
-        data.map((card, index) => (
-          <Card key={card.src} card={card} index={index} />
-        ))
-      }
-
-    </CardSlider>
+    <div className="w-[300px] rounded-lg shadow hover:shadow-lg border cursor-pointer bg-white flex flex-col overflow-hidden">
+      <div className="h-40">
+        <img
+          src={getRandomImage(index)}
+          alt={post.title}
+          className="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
+      <div className="p-4 grow flex flex-col gap-3">
+        <div className="text-xs text-blue-400 font-bold">{post.category || "دسته‌بندی"}</div>
+        <div className="font-bold text-lg line-clamp-2">{post.title}</div>
+        <div className="text-sm text-neutral-500 line-clamp-3">{post.summary || post.content?.substring(0, 120) || ""}</div>
+      </div>
+      <div className="px-4 pb-4 text-xs text-right text-muted-foreground">
+        {post?.author || "نویسنده"}{/* نام نویسنده، اگر باشد */}
+      </div>
+    </div>
   );
 }
 
-const DummyContent = () => {
+export function SectionBlog() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const axiosInstance = useAxios();
+
+  useEffect(() => {
+    setLoading(true);
+    axiosInstance
+      .get("/blog/posts/")
+      .then((res) => {
+        setPosts(res.data || []);
+        setError("");
+      })
+      .catch(() => {
+        setError("خطا در دریافت پست های وبلاگ");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
-    <>
-      {[...new Array(3).fill(1)].map((_, index) => {
-        return (
-          <div
-            key={"dummy-content" + index}
-            className="bg-[#F5F5F7] dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4" dir="ltr">
-            <p
-              className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl font-sans max-w-3xl mx-auto">
-              <span className="font-bold text-neutral-700 dark:text-neutral-200">
-                The first rule of Apple club is that you boast about Apple club.
-              </span>{" "}
-              Keep a journal, quickly jot down a grocery list, and take amazing
-              class notes. Want to convert those notes to text? No problem.
-              Langotiya jeetu ka mara hua yaar is ready to capture every
-              thought.
-            </p>
-            <img
-              src="https://assets.aceternity.com/macbook.png"
-              alt="Macbook mockup from Aceternity UI"
-              height="500"
-              width="500"
-              className="md:w-1/2 md:h-1/2 h-full w-full mx-auto object-contain" />
-          </div>
-        );
-      })}
-    </>
+    <CardSlider title="وبلاگ">
+      {loading ? (
+        <div className="p-8 text-center text-gray-500">در حال بارگذاری ...</div>
+      ) : error ? (
+        <div className="p-8 text-center text-red-500">{error}</div>
+      ) : posts.length === 0 ? (
+        <div className="p-8 text-center text-gray-500">پستی وجود ندارد.</div>
+      ) : (
+        posts.map((post, idx) => <BlogCard key={post.id || idx} post={post} index={idx} />)
+      )}
+    </CardSlider>
   );
-};
-
-const data = [
-  {
-    category: "Artificial Intelligence",
-    title: "You can do more with AI.",
-    src: "./src/image/111.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "Productivity",
-    title: "Enhance your productivity.",
-    src: "./src/image/111.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "Product",
-    title: "Launching the new Apple Vision Pro.",
-    src: "./src/image/111.jpg",
-    content: <DummyContent />,
-  },
-
-  {
-    category: "Product",
-    title: "Maps for your iPhone 15 Pro Max.",
-    src: "./src/image/111.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "iOS",
-    title: "Photography just got better.",
-    src: "./src/image/111.jpg",
-    content: <DummyContent />,
-  },
-  {
-    category: "Hiring",
-    title: "Hiring for a Staff Software Engineer",
-    src: "./src/image/111.jpg",
-    content: <DummyContent />,
-  },
-];
+}

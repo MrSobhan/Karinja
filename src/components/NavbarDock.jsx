@@ -1,53 +1,72 @@
-import React from "react";
+import React, { useContext } from "react";
 import { FloatingDock } from "@/components/ui/floating-dock";
-import {
-  IconBrandGithub,
-  IconBrandX,
-  IconExchange,
-  IconHome,
-  IconNewSection,
-  IconTerminal2,
-} from "@tabler/icons-react";
+
+import { HiOutlineHome , HiOutlineBriefcase , HiOutlineFingerPrint  } from "react-icons/hi";
+import { RiArticleLine } from "react-icons/ri";
+import { LuLogIn } from "react-icons/lu";
+import { MdLogout } from "react-icons/md";
+import AuthContext from "@/context/authContext";
+import { useNavigate } from "react-router-dom";
 
 export function NavbarDock() {
+  const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const isLoggedIn = authContext.isLogin();
+
+  const handleLogout = async () => {
+    await authContext.LogOut();
+    navigate("/login");
+  };
+
   const links = [
     {
       title: "خانه",
       icon: (
-        <IconHome className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <HiOutlineHome className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "#",
+      href: "/",
     },
-
     {
-      title: "داشبورد",
+      title: "مشاغل",
       icon: (
-        <IconTerminal2 className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <HiOutlineBriefcase className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/dashboard",
+      href: "/jobs/all",
     },
     {
       title: "وبلاگ",
       icon: (
-        <IconNewSection className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <RiArticleLine className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "#",
+      href: "/blog",
     },
-
-    {
-      title: "مشاغل",
+    isLoggedIn
+      ? {
+          title: "داشبورد",
+          icon: (
+            <HiOutlineFingerPrint className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
+          ),
+          href: "/dashboard",
+        }
+      : {
+          title: "ورود",
+          icon: (
+            <LuLogIn className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
+          ),
+          href: "/login",
+        },
+    isLoggedIn && {
+      title: "خروج",
       icon: (
-        <IconExchange className="h-full w-full text-neutral-500 dark:text-neutral-300" />
+        <MdLogout className="h-6 w-6 text-red-500 dark:text-red-400" onClick={handleLogout} />
       ),
-      href: "#",
     },
+  ].filter(Boolean);
 
-
-  ];
   return (
     <div className="flex items-center justify-center fixed bottom-4 left-0 z-50 w-full lg:hidden">
-      <FloatingDock
-        items={links} />
+      <FloatingDock items={links} />
     </div>
   );
 }

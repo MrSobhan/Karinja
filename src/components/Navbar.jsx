@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
 import { HoveredLink, Menu, MenuItem, ProductItem } from "./ui/navbar-menu";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LuLogIn } from "react-icons/lu";
-import { FiSun, FiMoon } from "react-icons/fi"
+import { FiSun, FiMoon } from "react-icons/fi";
 import AuthContext from "@/context/authContext";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { IoPersonOutline } from "react-icons/io5";
@@ -13,52 +13,38 @@ import {
     DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuPortal,
     DropdownMenuSeparator,
-    DropdownMenuShortcut,
-    DropdownMenuSub,
-    DropdownMenuSubContent,
-    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
     MdPerson,
     MdCreditCard,
     MdSettings,
-    MdKeyboard,
-    MdGroup,
-    MdMail,
-    MdMessage,
-    MdMoreHoriz,
-    MdGroupAdd,
     MdLogout,
-    MdApi,
     MdSupport,
-    MdCode,
 } from "react-icons/md";
 import { NavbarDock } from "./NavbarDock";
 
 export function Navbar() {
     const [active, setActive] = useState(null);
-    const authContext = useContext(AuthContext)
+    const authContext = useContext(AuthContext);
+    const navigate = useNavigate();
 
+    const handleLogout = async () => {
+        await authContext.LogOut();
+        navigate("/login");
+    };
+
+    const isLoggedIn = !!authContext.isLogin && authContext.isLogin();
 
     return (
         <div>
-            <div className=" fixed left-0 top-2 z-50 w-full lg:flex justify-between items-center px-2 md:px-6 py-4 hidden ">
-
-
+            <div className="fixed left-0 top-2 z-50 w-full lg:flex justify-between items-center px-2 md:px-6 py-4 hidden ">
                 <div className="flex items-center mx-auto dana">
                     <Menu setActive={setActive}>
                         <Link to={'/'}>
                             <div className="flex items-center gap-1">
-                                {/* <img
-                src="./src/image/01.png"
-                alt="لوگوی کاراینجا"
-                className="w-8 rounded-full"
-            /> */}
                                 <HiOutlineLocationMarker className="text-2xl text-gray-800 dark:text-white" />
-
                                 <span className="text-xl font-bold text-gray-800 dark:text-white moraba">
                                     کاراینجا
                                 </span>
@@ -119,56 +105,52 @@ export function Navbar() {
                                     <FiMoon className="text-gray-900" />
                                 )}
                             </Button>
-                            <Link to="/login">
-                                <Button variant="outline"
-                                    className="rounded-full w-9 h-9 shadow-md">
-                                    <LuLogIn />
-                                </Button>
-                            </Link>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="rounded-full w-9 h-9 shadow-md"><IoPersonOutline /></Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-48 text-right" dir="rtl">
-                                    <DropdownMenuLabel>حساب کاربری</DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuGroup>
+                            {!isLoggedIn ? (
+                                <Link to="/login">
+                                    <Button variant="outline" className="rounded-full w-9 h-9 shadow-md">
+                                        <LuLogIn />
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" className="rounded-full w-9 h-9 shadow-md"><IoPersonOutline /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent className="w-48 text-right" dir="rtl">
+                                        <DropdownMenuLabel>حساب کاربری</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuGroup>
+                                            <DropdownMenuItem asChild>
+                                                <Link to={'/dashboard'} className="flex cursor-pointer">
+                                                    <MdPerson className="ml-2 text-lg" />
+                                                    پروفایل
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <MdCreditCard className="ml-2 text-lg" />
+                                                صورتحساب
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>
+                                                <MdSettings className="ml-2 text-lg" />
+                                                تنظیمات
+                                            </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator />
                                         <DropdownMenuItem>
-                                            <Link to={'/dashboard'} className="flex">
-                                                <MdPerson className="ml-2 text-lg" />
-                                                پروفایل
-                                            </Link>
+                                            <MdSupport className="ml-2 text-lg" />
+                                            پشتیبانی
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <MdCreditCard className="ml-2 text-lg" />
-                                            صورتحساب
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                                            <MdLogout className="ml-2 text-lg" />
+                                            خروج
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <MdSettings className="ml-2 text-lg" />
-                                            تنظیمات
-                                        </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-
-                                    <DropdownMenuSeparator />
-
-
-                                    <DropdownMenuItem>
-                                        <MdSupport className="ml-2 text-lg" />
-                                        پشتیبانی
-                                    </DropdownMenuItem>
-
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                        <MdLogout className="ml-2 text-lg" />
-                                        خروج
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
                         </div>
                     </Menu>
                 </div>
-
-
             </div>
             <NavbarDock />
         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { SectionHeader } from '@/components/SectionHeader';
 import { SliderCompany } from '@/components/SliderCompany';
+import { SliderJobPosts } from '@/components/SliderJobPosts';
 import { SectionBlog } from '@/components/SectionBlog';
 import { SectionContact } from '@/components/SectionContact';
 import { SectionFeature } from '@/components/SectionFeature';
@@ -29,7 +30,7 @@ const HomePage = () => {
             </div> */}
 
             <SectionInsights />
-            <SliderCompany />
+            <SliderJobPosts />
             <SectionHero />
             <SliderCompany />
             <SectionFeature />

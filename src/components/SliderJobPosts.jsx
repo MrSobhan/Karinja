@@ -12,8 +12,8 @@ import {
 import useAxios from "@/hooks/useAxios";
 import { useNavigate } from "react-router-dom";
 
-export function SliderCompany() {
-    const [companies, setCompanies] = useState([]);
+export function SliderJobPosts() {
+    const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const navigate = useNavigate();
@@ -22,66 +22,62 @@ export function SliderCompany() {
     useEffect(() => {
         setLoading(true);
         axiosInstance
-            .get("/employer_companies/")
+            .get("/job_postings/")
             .then(res => {
-                setCompanies(res.data || []);
+                setJobs(res.data || []);
                 setError("");
             })
-            .catch(() => {
-                setError("خطا در دریافت لیست شرکت‌ها");
+            .catch(err => {
+                setError("خطا در دریافت لیست شغل‌ها");
             })
             .finally(() => setLoading(false));
     }, []);
 
     return (
-        <CardSlider title="شرکت‌های برگزیده">
+        <CardSlider title="آگهی‌های استخدامی">
             {loading ? (
                 <div className="p-8 text-center text-gray-500">در حال بارگذاری ...</div>
             ) : error ? (
                 <div className="p-8 text-center text-red-500">{error}</div>
-            ) : companies.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">شرکتی یافت نشد.</div>
+            ) : jobs.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">آگهی شغلی فعالی وجود ندارد.</div>
             ) : (
-                companies.map(company => (
+                jobs.map(job => (
                     <Card
                         className="w-[300px] cursor-pointer transition-shadow hover:shadow-lg"
-                        key={company.id}
-                        onClick={() => navigate(`/company/${company.id}`)}
+                        key={job.id}
+                        onClick={() => navigate(`/job/${job.id}`)}
                     >
                         <CardHeader>
                             <CardTitle className="text-lg font-bold">
-                                {company.full_name}
+                                {job.title}
                             </CardTitle>
                             <CardDescription>
-                                {company.industry && <span>{company.industry}</span>}
+                                {job.company && job.company.full_name
+                                    ? `شرکت ${job.company.full_name}`
+                                    : null}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="mb-2 text-sm text-gray-600">
-                                {(company.employee_count || company.founded_year) && (
-                                    <span>
-                                        {company.employee_count && ` 👥 ${company.employee_count}`}
-                                        {company.founded_year && ` | تاسیس: ${company.founded_year}`}
-                                    </span>
+                                {job.location && (
+                                    <span>📍 {job.location}</span>
                                 )}
                             </div>
                             <div className="mb-2 text-xs text-gray-700 line-clamp-3">
-                                {company.summary || company.description}
+                                {job.job_description}
                             </div>
                             <div className="text-xs mt-3 text-neutral-500 flex gap-x-2 flex-wrap">
-                                {company.ownership_type && (
-                                    <span className="bg-gray-100 px-2 py-1 rounded border text-[12px]">{company.ownership_type}</span>
+                                {job.employment_type && (
+                                    <span className="bg-gray-100 px-2 py-1 rounded border text-[12px]">{job.employment_type}</span>
                                 )}
-                                {company.website_address && (
-                                    <a
-                                        href={company.website_address.startsWith('http') ? company.website_address : `https://${company.website_address}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="bg-gray-100 px-2 py-1 rounded border text-[12px] text-blue-600 hover:underline"
-                                        onClick={e => e.stopPropagation()}
-                                    >
-                                        سایت
-                                    </a>
+                                {job.job_categoriy && (
+                                    <span className="bg-gray-100 px-2 py-1 rounded border text-[12px]">{job.job_categoriy}</span>
+                                )}
+                                {job.salary_unit && (
+                                    <span className="bg-gray-100 px-2 py-1 rounded border text-[12px]">
+                                        حقوق: {job.salary_range || "نامشخص"} {job.salary_unit}
+                                    </span>
                                 )}
                             </div>
                         </CardContent>
@@ -91,10 +87,10 @@ export function SliderCompany() {
                                 size="sm"
                                 onClick={e => {
                                     e.stopPropagation();
-                                    navigate(`/company/${company.id}`);
+                                    navigate(`/job/${job.id}`);
                                 }}
                             >
-                                مشاهده شرکت
+                                مشاهده بیشتر
                             </Button>
                         </CardFooter>
                     </Card>

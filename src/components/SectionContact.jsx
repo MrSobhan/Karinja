@@ -6,19 +6,38 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { AnimatedTestimonials } from "@/components/ui/animated-testimonials";
+import useAxios from "@/hooks/useAxios";
+
 
 export function SectionContact() {
+  const axiosInstance = useAxios();
   const [subjectInput, setSubjectInput] = useState("");
   const [contentInput, setContentInput] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [loadingSub, setLoadingSub] = useState(false);
 
-  const CommentHandler = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoadingSub(true);
-    setTimeout(() => {
-      setLoadingSub(false);
+
+    try {
+      await axiosInstance.post("/contact/", {
+        full_name: fullName,
+        email,
+        subject: subjectInput,
+        content: contentInput,
+      });
+      setFullName("");
+      setEmail("");
+      setSubjectInput("");
+      setContentInput("");
       alert("نظر شما با موفقیت ثبت شد!");
-    }, 1500);
+    } catch (error) {
+      alert("ارسال فرم با خطا مواجه شد.");
+    } finally {
+      setLoadingSub(false);
+    }
   };
 
   const testimonials = [
@@ -59,7 +78,6 @@ export function SectionContact() {
     },
   ];
 
-
   return (
     <section className="py-8 pb-14 lg:pb-24 container relative mx-auto lg:w-[80%] w-[90%] rtl text-right">
       <div
@@ -79,19 +97,33 @@ export function SectionContact() {
           alt="map"
           className="block lg:hidden w-full h-full max-w-[500px] max-h-[500px] rounded-xl object-contain mx-auto"
         />
-        <form onSubmit={CommentHandler} className="flex flex-col gap-4 max-w-[500px] mx-auto">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-[500px] mx-auto">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="full-name" className="mb-2 block text-sm font-medium">
                 نام و نام خانوادگی
               </Label>
-              <Input id="full-name" type="text" placeholder="مثلاً علی رضایی" />
+              <Input
+                id="full-name"
+                type="text"
+                placeholder="مثلاً علی رضایی"
+                value={fullName}
+                onChange={e => setFullName(e.target.value)}
+                required
+              />
             </div>
             <div>
               <Label htmlFor="email" className="mb-2 block text-sm font-medium">
                 ایمیل
               </Label>
-              <Input id="email" type="email" placeholder="your@email.com" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
             </div>
           </div>
           <div>
@@ -117,9 +149,10 @@ export function SectionContact() {
               value={contentInput}
               onChange={(e) => setContentInput(e.target.value)}
               placeholder="نظر خود را وارد کنید..."
+              required
             />
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={loadingSub}>
             {loadingSub && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             ارسال نظرات
           </Button>
