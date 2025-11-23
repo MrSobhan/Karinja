@@ -1,7 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { HiArrowSmLeft, HiChevronDown } from "react-icons/hi";
-import { motion } from 'motion/react';
+import { motion } from "framer-motion";
 import { FiSearch } from "react-icons/fi";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,40 +11,24 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/components/ui/command"
+} from "@/components/ui/command";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/components/ui/popover";
+import { useNavigate } from "react-router-dom";
+import { JOB_CATEGORIES, IRAN_PROVINCES } from "@/constants/jobFilters";
 
 export function SectionHeader() {
-    const [open, setOpen] = useState(false)
-    const [openJobCat, setOpenJobCat] = useState(false)
-    const [value, setValue] = useState("")
-    const [valueJobCat, setValueJobCat] = useState("")
-    const frameworks = [
-        {
-            value: "سلام",
-            label: "سلام",
-        },
-        {
-            value: "اوکس",
-            label: "اوکس",
-        },
-        {
-            value: "باشه",
-            label: "باشه",
-        },
-        {
-            value: "شماره4",
-            label: "شماره4",
-        },
-        {
-            value: "اره",
-            label: "اره",
-        },
-    ]
+    const [open, setOpen] = useState(false);
+    const [openJobCat, setOpenJobCat] = useState(false);
+    const [value, setValue] = useState("");
+    const [valueJobCat, setValueJobCat] = useState("");
+    const [searchTitle, setSearchTitle] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const navigate = useNavigate();
 
     const containerVariants = {
         hidden: { opacity: 0, y: 50 },
@@ -53,8 +37,8 @@ export function SectionHeader() {
             y: 0,
             transition: {
                 duration: 0.8,
-                ease: 'easeOut',
-                when: 'beforeChildren',
+                ease: "easeOut",
+                when: "beforeChildren",
                 staggerChildren: 0.2,
             },
         },
@@ -65,18 +49,34 @@ export function SectionHeader() {
         visible: {
             opacity: 1,
             y: 0,
-            transition: { duration: 0.5, ease: 'easeOut' },
+            transition: { duration: 0.5, ease: "easeOut" },
         },
     };
 
     const buttonVariants = {
         hidden: { opacity: 0, x: -20 },
-        visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut', delay: 1.2 } },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: { duration: 0.6, ease: "easeOut", delay: 1.2 },
+        },
         hover: {
             x: -10,
             transition: { duration: 0.3 },
         },
     };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (searchTitle) params.append("title", searchTitle);
+        if (valueJobCat) params.append("category", valueJobCat);
+        if (value) params.append("city", value);
+        navigate(`/jobs/search?${params.toString()}`);
+        setLoading(false);
+    };
+
     return (
         <div className="container relative max-w-7xl mx-auto pt-16 lg:py-32 w-full flex flex-col lg:flex-row items-center justify-center mt-16">
             <motion.div
@@ -122,9 +122,7 @@ export function SectionHeader() {
                     height={340}
                     autoPlay
                     muted
-                    loop={false}
-                    onEnded={e => e.currentTarget.pause()}
-                    // style={{ background: '#fff' }}
+                    loop
                     playsInline
                 />
                 <video
@@ -134,20 +132,23 @@ export function SectionHeader() {
                     height={340}
                     autoPlay
                     muted
-                    loop={false}
-                    onEnded={e => e.currentTarget.pause()}
-                    // style={{ background: '#18181b' }}
+                    loop
                     playsInline
                 />
             </div>
 
-            <div className="lg:absolute lg:bottom-4 lg:left-~0 w-full px-3 mt-20 lg:mt-0">
-
-                <div className='lg:rounded-full lg:w-[60%] px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar grid grid-cols-4 lg:flex lg:items-center lg:justify-evenly  lg:flex-nowrap gap-7 overflow-hidden pb-12 lg:pb-4 dark:border-white/[0.2] lg:border border-transparent'>
-                    
-
-                    <Input placeholder="عنوان شغلی یا شرکت ..." type="text"  className="col-span-4 lg:col-span-1"/>
-
+            <div className="lg:absolute lg:bottom-4 left-0 w-full px-3 mt-20 lg:mt-0">
+                <form
+                    onSubmit={handleSearch}
+                    className="lg:rounded-full lg:w-[60%] px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar grid grid-cols-4 lg:flex lg:items-center lg:justify-evenly  lg:flex-nowrap gap-7 overflow-hidden pb-12 lg:pb-4 dark:border-white/[0.2] lg:border border-transparent"
+                >
+                    <Input
+                        placeholder="عنوان شغلی یا شرکت ..."
+                        type="text"
+                        className="col-span-4 lg:col-span-1"
+                        value={searchTitle}
+                        onChange={e => setSearchTitle(e.target.value)}
+                    />
                     <Popover open={openJobCat} onOpenChange={setOpenJobCat}>
                         <PopoverTrigger asChild>
                             <Button
@@ -157,7 +158,7 @@ export function SectionHeader() {
                                 className="w-full justify-between col-span-2 lg:col-span-1"
                             >
                                 {valueJobCat
-                                    ? frameworks.find((framework) => framework.value === valueJobCat)?.label
+                                    ? JOB_CATEGORIES.find(c => c.value === valueJobCat)?.label
                                     : "گروه شغلی"}
                                 <HiChevronDown className="opacity-50" />
                             </Button>
@@ -168,16 +169,16 @@ export function SectionHeader() {
                                 <CommandList>
                                     <CommandEmpty>گروه شغلی پیدا نشد</CommandEmpty>
                                     <CommandGroup>
-                                        {frameworks.map((framework) => (
+                                        {JOB_CATEGORIES.map(cat => (
                                             <CommandItem
-                                                key={framework.value}
-                                                value={framework.value}
-                                                onSelect={(currentValue) => {
-                                                    setValueJobCat(currentValue === value ? "" : currentValue)
-                                                    setOpenJobCat(false)
+                                                key={cat.value}
+                                                value={cat.value}
+                                                onSelect={currentValue => {
+                                                    setValueJobCat(currentValue === valueJobCat ? "" : currentValue);
+                                                    setOpenJobCat(false);
                                                 }}
                                             >
-                                                {framework.label}
+                                                {cat.label}
                                             </CommandItem>
                                         ))}
                                     </CommandGroup>
@@ -194,7 +195,7 @@ export function SectionHeader() {
                                 className="w-full justify-between col-span-2 lg:col-span-1"
                             >
                                 {value
-                                    ? frameworks.find((framework) => framework.value === value)?.label
+                                    ? IRAN_PROVINCES.find(c => c.value === value)?.label
                                     : "شهر"}
                                 <HiChevronDown className="opacity-50" />
                             </Button>
@@ -205,16 +206,16 @@ export function SectionHeader() {
                                 <CommandList>
                                     <CommandEmpty>شهری پیدا نشد</CommandEmpty>
                                     <CommandGroup>
-                                        {frameworks.map((framework) => (
+                                        {IRAN_PROVINCES.map(city => (
                                             <CommandItem
-                                                key={framework.value}
-                                                value={framework.value}
-                                                onSelect={(currentValue) => {
-                                                    setValue(currentValue === value ? "" : currentValue)
-                                                    setOpen(false)
+                                                key={city.value}
+                                                value={city.value}
+                                                onSelect={currentValue => {
+                                                    setValue(currentValue === value ? "" : currentValue);
+                                                    setOpen(false);
                                                 }}
                                             >
-                                                {framework.label}
+                                                {city.label}
                                             </CommandItem>
                                         ))}
                                     </CommandGroup>
@@ -222,9 +223,20 @@ export function SectionHeader() {
                             </Command>
                         </PopoverContent>
                     </Popover>
-                    <button className='rounded-full text-md w-10 h-10 !px-2.5 col-span-4 lg:col-span-1 flex items-center justify-center mx-auto bg-[#09090b] text-white cursor-pointer dark:border-white/[0.2] border border-transparent'><FiSearch /></button>
-                </div>
-
+                    <button
+                        type="submit"
+                        className="rounded-full text-md w-10 h-10 !px-2.5 col-span-4 lg:col-span-1 flex items-center justify-center mx-auto bg-[#09090b] text-white cursor-pointer dark:border-white/[0.2] border border-transparent"
+                        disabled={loading}
+                    >
+                        {loading ? (
+                            <svg className="animate-spin" width="20" height="20">
+                                <circle cx="10" cy="10" r="8" stroke="#fff" strokeWidth="2" fill="none" />
+                            </svg>
+                        ) : (
+                            <FiSearch />
+                        )}
+                    </button>
+                </form>
             </div>
         </div>
     );

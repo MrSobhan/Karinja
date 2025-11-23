@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { FaAngleLeft , FaAngleRight  } from "react-icons/fa6";
 import "./Slider.css";
 
-export default function CardSlider({ title, children }) {
+export default function CardSlider({ title, children , href  = '/'}) {
     const sliderRef = useRef(null);
     const scrollAmount = 300;
 
@@ -34,7 +34,7 @@ export default function CardSlider({ title, children }) {
             <div className="container w-full flex items-center justify-between">
 
 
-                <Link to={'/'}>
+                <Link to={href}>
                     <Button variant="text" className="py-2 px-3 moraba">لیست {title} ها <IoArrowBackCircleOutline className="inline text-xl" /></Button>
                 </Link>
 

@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
     try {
       const res = await axios.post(`${baseUrl}/login`, {
         username: "full_admin",
-        password: "admin"
+        password: "full_admin"
       }, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" }
       });

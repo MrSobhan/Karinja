@@ -9,6 +9,7 @@
     src: url("./lib/fonts/Dana/woff2/DanaFaNum-Medium.woff2");
     /* IE9 Compat Modes */
 }
+
 @font-face {
     font-family: "dana-blod";
     src: url("./lib/fonts/Dana/woff2/DanaFaNum-DemiBold.woff2");
@@ -32,10 +33,12 @@ body {
     font-family: "dana" !important;
 }
 
-.img__contact{
+.img__contact {
     filter: brightness(56%)
 }
 
-button, [role='combobox'] {
-   direction: rtl;
+button,
+[role='combobox'] {
+    direction: rtl;
 }
+

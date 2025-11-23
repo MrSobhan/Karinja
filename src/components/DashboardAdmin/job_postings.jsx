@@ -10,39 +10,96 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { DataTable } from "@/components/data-table";
 import { LuLoaderCircle } from "react-icons/lu";
 
-const jobPostingSchema = z.object({
-  title: z.string().min(1, "عنوان الزامی است"),
-  location: z.string().min(1, "محل کار الزامی است"),
-  job_description: z.string().min(1, "توضیحات الزامی است"),
-  employment_type: z.enum(["تمام‌وقت", "پاره‌وقت", "دورکاری", "پروژه‌ای"]),
-  posted_date: z.string().min(1, "تاریخ انتشار الزامی است"),
-  expiry_date: z.string().min(1, "تاریخ پایان الزامی است"),
-  salary_unit: z.enum(["ساعتی", "ماهیانه", "سالانه"]),
-  salary_range: z.number(),
-  job_categoriy: z.string().min(1, "دسته بندی شغلی الزامی است"),
-  vacancy_count: z.number(),
-  status: z.enum(["در انتظار تایید", "منتشر شده", "رد شده"]),
-  company_id: z.string().min(1, "شرکت الزامی است"),
-});
 
 const employmentTypeOpts = [
   { value: "تمام‌وقت", label: "تمام‌وقت" },
   { value: "پاره‌وقت", label: "پاره‌وقت" },
-  { value: "دورکاری", label: "دورکاری" },
-  { value: "پروژه‌ای", label: "پروژه‌ای" },
+  { value: "قراردادی", label: "قراردادی" },
+  { value: "موقت", label: "موقت" },
+  { value: "داوطلبانه", label: "داوطلبانه" },
+  { value: "کارآموز", label: "کارآموز" },
+  { value: "سایر", label: "سایر" },
+];
+const jobCategoryOpts = [
+  { value: "مدیریتی", label: "مدیریتی" },
+  { value: "فنی", label: "فنی" },
+  { value: "خدماتی", label: "خدماتی" },
+  { value: "اداری", label: "اداری" },
+  { value: "فروش", label: "فروش" },
+  { value: "پشتیبانی", label: "پشتیبانی" },
+  { value: "تولیدی", label: "تولیدی" },
+  { value: "آموزشی", label: "آموزشی" },
+  { value: "بهداشتی", label: "بهداشتی" },
+  { value: "سایر", label: "سایر" },
 ];
 
 const salaryUnitOpts = [
   { value: "ساعتی", label: "ساعتی" },
-  { value: "ماهیانه", label: "ماهیانه" },
+  { value: "روزانه", label: "روزانه" },
+  { value: "هفتگی", label: "هفتگی" },
+  { value: "ماهانه", label: "ماهانه" },
   { value: "سالانه", label: "سالانه" },
+  { value: "سایر", label: "سایر" },
 ];
 
 const jobStatusOpts = [
   { value: "در انتظار تایید", label: "در انتظار تایید" },
   { value: "منتشر شده", label: "منتشر شده" },
-  { value: "رد شده", label: "رد شده" },
+  { value: "متوقف شده", label: "متوقف شده" },
+  { value: "منقضی شده", label: "منقضی شده" },
+  { value: "لغو شده", label: "لغو شده" },
+  { value: "بایگانی شده", label: "بایگانی شده" },
 ];
+const iranProvincesOpts = [
+  { value: "آذربایجان شرقی", label: "آذربایجان شرقی" },
+  { value: "آذربایجان غربی", label: "آذربایجان غربی" },
+  { value: "اردبیل", label: "اردبیل" },
+  { value: "اصفهان", label: "اصفهان" },
+  { value: "البرز", label: "البرز" },
+  { value: "ایلام", label: "ایلام" },
+  { value: "بوشهر", label: "بوشهر" },
+  { value: "تهران", label: "تهران" },
+  { value: "چهارمحال و بختیاری", label: "چهارمحال و بختیاری" },
+  { value: "خراسان جنوبی", label: "خراسان جنوبی" },
+  { value: "خراسان رضوی", label: "خراسان رضوی" },
+  { value: "خراسان شمالی", label: "خراسان شمالی" },
+  { value: "خوزستان", label: "خوزستان" },
+  { value: "زنجان", label: "زنجان" },
+  { value: "سمنان", label: "سمنان" },
+  { value: "سیستان و بلوچستان", label: "سیستان و بلوچستان" },
+  { value: "فارس", label: "فارس" },
+  { value: "قزوین", label: "قزوین" },
+  { value: "قم", label: "قم" },
+  { value: "کردستان", label: "کردستان" },
+  { value: "کرمان", label: "کرمان" },
+  { value: "کرمانشاه", label: "کرمانشاه" },
+  { value: "کهگیلویه و بویراحمد", label: "کهگیلویه و بویراحمد" },
+  { value: "گلستان", label: "گلستان" },
+  { value: "گیلان", label: "گیلان" },
+  { value: "لرستان", label: "لرستان" },
+  { value: "مازندران", label: "مازندران" },
+  { value: "مرکزی", label: "مرکزی" },
+  { value: "هرمزگان", label: "هرمزگان" },
+  { value: "همدان", label: "همدان" },
+  { value: "یزد", label: "یزد" },
+];
+
+
+
+const jobPostingSchema = z.object({
+  title: z.string().min(1, "عنوان الزامی است"),
+  location: z.enum(iranProvincesOpts.map(opt => opt.value)),
+  job_description: z.string().min(1, "توضیحات الزامی است"),
+  employment_type: z.enum(employmentTypeOpts.map(opt => opt.value)),
+  posted_date: z.string().min(1, "تاریخ انتشار الزامی است"),
+  expiry_date: z.string().min(1, "تاریخ پایان الزامی است"),
+  salary_unit: z.enum(salaryUnitOpts.map(opt => opt.value)),
+  salary_range: z.number(),
+  job_categoriy: z.enum(jobCategoryOpts.map(opt => opt.value)),
+  vacancy_count: z.number(),
+  status: z.enum(jobStatusOpts.map(opt => opt.value)),
+  company_id: z.string().min(1, "شرکت الزامی است"),
+});
 
 export default function JobPostings() {
   const [jobPostings, setJobPostings] = useState([])
@@ -51,7 +108,7 @@ export default function JobPostings() {
   const [editingJob, setEditingJob] = useState(null)
   const [formData, setFormData] = useState({
     title: "",
-    location: "آذربایجان شرقی",
+    location: "تهران",
     job_description: "",
     employment_type: "تمام‌وقت",
     posted_date: "",
@@ -112,17 +169,21 @@ export default function JobPostings() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    
     setLoading(true);
     try {
-      const validatedData = jobPostingSchema.parse(formData);
+      let res 
       setErrors({});
       if (editingJob) {
-        await axiosInstance.patch(`/job_postings/${editingJob.id}`, validatedData);
+        res = await axiosInstance.patch(`/job_postings/${editingJob.id}`, formData);
         toast.success("آگهی با موفقیت ویرایش شد");
       } else {
-        await axiosInstance.post(`/job_postings`, validatedData);
+        
+        res = await axiosInstance.post(`/job_postings`, formData);
         toast.success("آگهی با موفقیت اضافه شد");
       }
+      
       setFormData({
         title: "",
         location: "آذربایجان شرقی",
@@ -200,7 +261,7 @@ export default function JobPostings() {
     { key: "salary_unit", label: "نوع حقوق" },
     { key: "salary_range", label: "حقوق" },
     { key: "status", label: "وضعیت" },
-    { key: "company", label: "شرکت" },
+    // { key: "company", label: "شرکت" },
     { key: "posted_date", label: "تاریخ انتشار" },
     { key: "expiry_date", label: "تاریخ پایان" },
   ];
@@ -249,13 +310,21 @@ export default function JobPostings() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="job_categoriy">دسته بندی شغلی</Label>
-                <Input
-                  id="job_categoriy"
-                  name="job_categoriy"
+                <Select
                   value={formData.job_categoriy}
-                  onChange={handleInputChange}
-                  className={errors.job_categoriy ? "border-red-500" : ""}
-                />
+                  onValueChange={(value) => handleSelectChange("job_categoriy", value)}
+                >
+                  <SelectTrigger id="job_categoriy">
+                    <SelectValue placeholder="انتخاب دسته بندی شغلی" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jobCategoryOpts.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.job_categoriy && <p className="text-red-500 text-sm">{errors.job_categoriy}</p>}
               </div>
               <div className="grid gap-2">
@@ -291,13 +360,19 @@ export default function JobPostings() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="location">محل کار</Label>
-                <Input
-                  id="location"
-                  name="location"
+                <Select
                   value={formData.location}
-                  onChange={handleInputChange}
-                  className={errors.location ? "border-red-500" : ""}
-                />
+                  onValueChange={(value) => handleSelectChange("location", value)}
+                >
+                  <SelectTrigger id="location">
+                    <SelectValue placeholder="انتخاب محل کار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {iranProvincesOpts.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
               </div>
             </div>

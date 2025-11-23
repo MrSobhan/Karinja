@@ -3,12 +3,255 @@ import useAxios from "@/hooks/useAxios";
 import { toast, Toaster } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/data-table";
-import { LuLoaderCircle , LuSearch } from "react-icons/lu";
+import { LuLoaderCircle, LuSearch, LuTrash2 } from "react-icons/lu";
+import { FaRegEdit } from "react-icons/fa";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { DataTable } from "@/components/data-table";
 
-// Advanced search endpoints and their query params
+// Select options for specific fields
+const SELECT_OPTIONS = {
+  "role": [
+    { value: "full_admin", label: "مدیر عامل" },
+    { value: "admin", label: "ادمین" },
+    { value: "employer", label: "کارفرما" },
+    { value: "job_seeker", label: "کارجو" },
+  ],
+  "employment_status": [
+    { value: "employed", label: "شاغل" },
+    { value: "unemployed", label: "بیکار" },
+    { value: "student", label: "دانشجو" },
+    { value: "other", label: "سایر" },
+  ],
+  "marital_status": [
+    { value: "مجرد", label: "مجرد" },
+    { value: "متاهل", label: "متاهل" },
+  ],
+  "gender": [
+    { value: "مرد", label: "مرد" },
+    { value: "زن", label: "زن" },
+  ],
+  "degree": [
+    { value: "دبستان", label: "دبستان" },
+    { value: "دیپلم", label: "دیپلم" },
+    { value: "کاردانی", label: "کاردانی" },
+    { value: "کارشناسی", label: "کارشناسی" },
+    { value: "کارشناسی ارشد", label: "کارشناسی ارشد" },
+    { value: "دکتری", label: "دکتری" },
+    { value: "سایر", label: "سایر" },
+  ],
+  "proficiency_level": [
+    { value: "مبتدی", label: "مبتدی" },
+    { value: "متوسط", label: "متوسط" },
+    { value: "پیشرفته", label: "پیشرفته" }
+  ],
+  "has_certificate": [
+    { value: "true", label: "بله" },
+    { value: "false", label: "خیر" }
+  ],
+  "is_visible": [
+    { value: "true", label: "قابل نمایش" },
+    { value: "false", label: "خصوصی" }
+  ],
+  "status": [
+    { value: "ارسال شده", label: "ارسال شده" },
+    { value: "در حال بررسی", label: "در حال بررسی" },
+    { value: "رد شده", label: "رد شده" },
+    { value: "پذیرفته شده", label: "پذیرفته شده" }
+  ]
+};
+
+const CITY_OPTIONS = [
+  { value: "تهران", label: "تهران" },
+  { value: "مشهد", label: "مشهد" },
+  { value: "اصفهان", label: "اصفهان" },
+  { value: "شیراز", label: "شیراز" },
+  { value: "تبریز", label: "تبریز" },
+  { value: "کرج", label: "کرج" },
+  { value: "سایر", label: "سایر" },
+];
+
+
+// Helper: return select options for the param field name, otherwise null
+function getSelectOptions(paramName) {
+  if (paramName === "city") return CITY_OPTIONS;
+  return SELECT_OPTIONS[paramName] || null;
+}
+
+// --- Data Table columns injection helpers ---
+function getTableActions({ onEdit, onDelete }) {
+  return {
+    id: "actions",
+    label: "عملیات",
+    render: (row) => (
+      <div className="flex gap-2 justify-center">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="hover:bg-zinc-200"
+          onClick={() => onEdit(row)}
+        >
+          <FaRegEdit className="w-5 h-5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="hover:bg-red-100 text-red-500"
+          onClick={() => onDelete(row)}
+        >
+          <LuTrash2 className="w-5 h-5" />
+        </Button>
+      </div>
+    ),
+  };
+}
+
+// ---- Edit Modal -----
+function EditModal({ open, onOpenChange, fields, record, onSubmit, loading }) {
+  const [form, setForm] = useState(record || {});
+
+  React.useEffect(() => {
+    setForm(record || {});
+  }, [record]);
+
+  // Handle for both text and select
+  const handleChange = (name, value) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>ویرایش رکورد</DialogTitle>
+        </DialogHeader>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            onSubmit(form);
+          }}
+          className="space-y-4"
+        >
+          {fields.map((field) => (
+            <div key={field.key || field.name} className="space-y-2">
+              <label className="text-sm font-medium block">{field.label}</label>
+              {(() => {
+                const selectOptions = getSelectOptions(field.key || field.name);
+
+                if (selectOptions) {
+                  return (
+                    <Select
+                      value={form[field.key || field.name] === undefined || form[field.key || field.name] === null
+                        ? ""
+                        : String(form[field.key || field.name])}
+                      onValueChange={value => {
+                        handleChange(field.key || field.name, value);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        {(() => {
+                          const selected = selectOptions.find(opt => String(opt.value) === String(form[field.key || field.name]));
+                          return selected ? selected.label : "انتخاب کنید";
+                        })()}
+                      </SelectTrigger>
+                      <SelectContent className="rtl">
+                        {selectOptions.map(opt => (
+                          <SelectItem key={opt.value} value={String(opt.value)}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                } else {
+                  return (
+                    <Input
+                      type="text"
+                      value={form[field.key || field.name] || ""}
+                      onChange={e => handleChange(field.key || field.name, e.target.value)}
+                      className="w-full"
+                    />
+                  );
+                }
+              })}
+            </div>
+          ))}
+          <DialogFooter className="mt-4">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="bg-primary"
+            >
+              {loading ? <LuLoaderCircle className="animate-spin mr-2 w-4 h-4" /> : null}
+              ذخیره تغییرات
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---- Main Search Component ----
+const keyMappings = {
+  "role": {
+    "full_admin": "مدیر عامل",
+    "admin": "ادمین",
+    "employer": "کارفرما",
+    "job_seeker": "کارجو"
+  },
+  "employment_status": {
+    "دانشجو": "دانشجو",
+    "سایر": "سایر",
+    "کارجو": "کارجو",
+    "شاغل": "شاغل",
+    "بیکار": "بیکار"
+  },
+  "is_visible": {
+    "true": "قابل نمایش",
+    "false": "خصوصی"
+  },
+  "marital_status": {
+    "مجرد": "مجرد",
+    "متاهل": "متاهل"
+  },
+  "gender": {
+    "مرد": "مرد",
+    "زن": "زن"
+  },
+  "degree": {
+    "دبستان": "دبستان",
+    "دیپلم": "دیپلم",
+    "کاردانی": "کاردانی",
+    "کارشناسی": "کارشناسی",
+    "کارشناسی ارشد": "کارشناسی ارشد",
+    "دکتری": "دکتری",
+    "سایر": "سایر"
+  },
+  "proficiency_level": {
+    "مبتدی": "مبتدی",
+    "متوسط": "متوسط",
+    "پیشرفته": "پیشرفته"
+  },
+  "has_certificate": {
+    "true": "بله",
+    "false": "خیر"
+  },
+  "certificate_verification_status": {
+    "تایید شده": "تایید شده",
+    "رد شده": "رد شده",
+    "در انتظار تایید": "در انتظار تایید"
+  },
+  "status": {
+    "ارسال شده": "ارسال شده",
+    "در حال بررسی": "در حال بررسی",
+    "رد شده": "رد شده",
+    "پذیرفته شده": "پذیرفته شده"
+  }
+};
+
 const ENDPOINTS = [
   {
     label: "کاربران",
@@ -27,6 +270,7 @@ const ENDPOINTS = [
       { key: "phone", label: "شماره تلفن" },
       { key: "role", label: "نقش" },
       { key: "username", label: "نام کاربری" },
+      // actions
     ],
   },
   {
@@ -163,70 +407,14 @@ const ENDPOINTS = [
   },
 ];
 
-const keyMappings = {
-  "role": { 
-    "full_admin": "مدیر عامل", 
-    "admin": "ادمین", 
-    "employer": "کارفرما", 
-    "job_seeker": "کارجو" 
-  },
-  "employment_status": { 
-    "employed": "شاغل", 
-    "unemployed": "بیکار", 
-    "student": "دانشجو", 
-    "other": "سایر",
-    "کارجو": "کارجو",
-    "شاغل": "شاغل",
-    "بیکار": "بیکار"
-  },
-  "is_visible": { 
-    "true": "قابل نمایش", 
-    "false": "خصوصی",
-  },
-  "marital_status": {
-    "مجرد": "مجرد",
-    "متاهل": "متاهل"
-  },
-  "gender": {
-    "مرد": "مرد",
-    "زن": "زن"
-  },
-  "degree": {
-    "دبستان": "دبستان",
-    "دیپلم": "دیپلم",
-    "کاردانی": "کاردانی",
-    "کارشناسی": "کارشناسی",
-    "کارشناسی ارشد": "کارشناسی ارشد",
-    "دکتری": "دکتری",
-    "سایر": "سایر"
-  },
-  "proficiency_level": {
-    "مبتدی": "مبتدی",
-    "متوسط": "متوسط",
-    "پیشرفته": "پیشرفته"
-  },
-  "has_certificate": {
-    "true": "بله",
-    "false": "خیر"
-  },
-  "certificate_verification_status": {
-    "تایید شده": "تایید شده",
-    "رد شده": "رد شده",
-    "در انتظار تایید": "در انتظار تایید"
-  },
-  "status": {
-    "ارسال شده": "ارسال شده",
-    "در حال بررسی": "در حال بررسی",
-    "رد شده": "رد شده",
-    "پذیرفته شده": "پذیرفته شده"
-  }
-};
-
 const Search = () => {
   const [activeTab, setActiveTab] = useState(ENDPOINTS[0].value);
   const [params, setParams] = useState({});
   const [result, setResult] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [editRec, setEditRec] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
 
   const axiosInstance = useAxios();
 
@@ -236,26 +424,29 @@ const Search = () => {
     setActiveTab(value);
     setParams({});
     setResult([]);
+    setEditRec(null);
+    setEditModalOpen(false);
   };
 
   const handleInputChange = (paramName, value) => {
     setParams((prev) => ({ ...prev, [paramName]: value }));
   };
 
+  // Handle search
   const handleSearch = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setResult([]);
     try {
-      // Query string builder
       const qstr = Object.entries(params)
-        .filter(([k, v]) => v && v.trim() !== "")
+        .filter(([k, v]) => v && String(v).trim() !== "")
         .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
         .join("&");
-      const url = selectedEndpoint.url + (qstr ? "?" + qstr : "");
+      const url = selectedEndpoint.url + (qstr ? "search/?" + qstr : "");
+      console.log(url);
+      
       const res = await axiosInstance.get(url);
-      // API may return list or paginated object
-      const data =  Array.isArray(res.data) ? res.data : res.data.results ? res.data.results : [];
+      const data = Array.isArray(res.data) ? res.data : res.data.results ? res.data.results : [];
       setResult(data);
       if (!data.length) {
         toast("موردی یافت نشد", { icon: "🔍" });
@@ -270,6 +461,97 @@ const Search = () => {
     }
   };
 
+  // --- Delete logic ---
+  const handleDelete = async (row) => {
+    if (!window.confirm("آیا از حذف این مورد مطمئن هستید؟")) return;
+    try {
+      await axiosInstance.delete(`${selectedEndpoint.url}${row || ""}/`);
+      setResult((prev) => prev.filter((r) => (r.id || r.pk) !== row));
+      toast.success("با موفقیت حذف شد");
+    } catch (err) {
+      toast.error("خطا در حذف رکورد");
+      console.error(err);
+    }
+  };
+
+  // --- Edit logic ---
+  const handleEdit = (row) => {
+    setEditRec(row);
+    setEditModalOpen(true);
+  };
+  const handleEditModalClose = () => {
+    setEditRec(null);
+    setEditModalOpen(false);
+  };
+
+  const handleEditSubmit = async (data) => {
+    setEditLoading(true);
+    let id = editRec.id || editRec.pk;
+    try {
+      const res = await axiosInstance.patch(`${selectedEndpoint.url}${id}/`, data);
+      // update result
+      setResult(prev =>
+        prev.map((r) =>
+          (r.id || r.pk) === id ? { ...r, ...res.data } : r
+        )
+      );
+      toast.success("تغییرات با موفقیت ذخیره شد");
+      setEditModalOpen(false);
+      setEditRec(null);
+    } catch (err) {
+      toast.error("خطا در ویرایش رکورد");
+      console.error(err);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  // Select: use Select for params with defined options, else text input
+  function renderParamInput(param) {
+    const selectOptions = getSelectOptions(param.name);
+    
+    if (selectOptions != null) {
+      return (
+        <Select
+          value={
+            params[param.name] !== undefined
+              ? String(params[param.name])
+              : ""
+          }
+          onValueChange={(value) => handleInputChange(param.name, value)}
+        >
+          <SelectTrigger className="w-full">
+            {
+              (() => {
+                const selected = selectOptions.find(opt => String(opt.value) === String(params[param.name]));
+                return selected ? selected.label : "انتخاب کنید";
+              })()
+            }
+          </SelectTrigger>
+          <SelectContent className="rtl">
+            {selectOptions.map(opt => (
+              <SelectItem key={opt.value} value={String(opt.value)}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    } else {
+      return (
+        <Input
+          type="text"
+          value={params[param.name] || ""}
+          onChange={(e) => handleInputChange(param.name, e.target.value)}
+          placeholder={param.label}
+          className="w-full"
+        />
+      );
+    }
+  }
+
+
+
   return (
     <div className="container mx-auto py-6 px-4" dir="rtl">
       <Toaster className="dana" />
@@ -280,7 +562,7 @@ const Search = () => {
 
       <Card className="mb-6">
         <CardContent>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full"  dir="rtl">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full" dir="rtl">
             <div className="w-full overflow-x-auto scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
               <TabsList
                 className="
@@ -298,9 +580,9 @@ const Search = () => {
                       text-xs md:text-sm whitespace-nowrap px-4 py-2 flex-shrink-0
                       max-w-[200px] sm:max-w-[160px] md:max-w-[200px] overflow-hidden text-ellipsis
                       transition
-                      ${activeTab === ep.value 
+                      ${activeTab === ep.value
                         ? "!bg-zinc-400 !text-gray-900"
-                        : "" }
+                        : ""}
                     `}
                   >
                     {ep.label}
@@ -325,13 +607,7 @@ const Search = () => {
                     {ep.params.map((p) => (
                       <div key={p.name} className="space-y-2">
                         <label className="text-sm font-medium block">{p.label}</label>
-                        <Input
-                          type="text"
-                          value={params[p.name] || ""}
-                          onChange={(e) => handleInputChange(p.name, e.target.value)}
-                          placeholder={p.label}
-                          className="w-full"
-                        />
+                        {renderParamInput(p)}
                       </div>
                     ))}
                   </div>
@@ -358,6 +634,17 @@ const Search = () => {
         </CardContent>
       </Card>
 
+      {editRec && (
+        <EditModal
+          open={editModalOpen}
+          onOpenChange={handleEditModalClose}
+          fields={selectedEndpoint.headers.filter(h => h.key !== "id" && h.key !== "actions")}
+          record={editRec}
+          onSubmit={handleEditSubmit}
+          loading={editLoading}
+        />
+      )}
+
       {result.length > 0 && (
         <Card>
           <CardHeader>
@@ -368,29 +655,33 @@ const Search = () => {
               headers={selectedEndpoint.headers}
               data={result}
               valueMappings={keyMappings}
+              onDelete={handleDelete}
+            // onEdit={handleEdit}
             />
           </CardContent>
         </Card>
       )}
 
-      {!isLoading && result.length === 0 && Object.keys(params).some(k => params[k]) && (
+      {!isLoading && result.length === 0 && Object.keys(params).some((k) => params[k]) && (
         <Card>
           <CardContent className="py-10">
-            <div className="text-center text-muted-foreground flex items-center justify-center gap-x-3">
-              <LuSearch className="text-lg opacity-70" />
-              <p className="text-2xl">نتیجه‌ای یافت نشد</p>
+            <div className="text-center text-muted-foreground flex items-center justify-center flex-col gap-x-3">
+              <div className="flex items-center justify-center gap-2">
+                <LuSearch className="text-lg opacity-70" />
+                <p className="text-lg">نتیجه‌ای یافت نشد</p>
+              </div>
               <p className="text-sm mt-2">لطفاً فیلترهای جستجو را تغییر دهید</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {!isLoading && result.length === 0 && !Object.keys(params).some(k => params[k]) && (
+      {!isLoading && result.length === 0 && !Object.keys(params).some((k) => params[k]) && (
         <Card>
           <CardContent className="py-10">
             <div className="text-center text-muted-foreground flex items-center justify-center gap-x-3">
-            <LuSearch className="text-2xl opacity-70" />
-              <p className="text-lg">برای شروع جستجو، فیلترهای مورد نظر را وارد کنید.</p>
+              <LuSearch className="text-2xl opacity-70" />
+              <p className="text-sm">برای شروع جستجو، فیلترهای مورد نظر را وارد کنید.</p>
             </div>
           </CardContent>
         </Card>

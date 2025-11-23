@@ -21,7 +21,8 @@ import {
   FileUser,
   BookText,
   Brain,
-  BriefcaseBusiness
+  BriefcaseBusiness,
+  Rss 
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -162,6 +163,12 @@ export function AppSidebar({ ...props }) {
             icon: UserPen,
           },
           {
+            title: "وبلاگ ها",
+            titleSite: "Blogs",
+            url: "/dashboard/blogs",
+            icon: Rss ,
+          },
+          {
             title: "اعلان ها",
             titleSite: "Notifications",
             url: "/dashboard/notifications",
@@ -255,6 +262,12 @@ export function AppSidebar({ ...props }) {
             titleSite: "Job Application",
             url: "/dashboard/job-application",
             icon: UserPen,
+          },
+          {
+            title: "وبلاگ ها",
+            titleSite: "Blogs",
+            url: "/dashboard/blogs",
+            icon: Rss ,
           },
           {
             title: "اعلان ها",

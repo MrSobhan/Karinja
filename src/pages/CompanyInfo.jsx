@@ -94,11 +94,11 @@ export default function CompanyInfo() {
                 } catch (e) {
                     toast.error("فعال‌سازی حساب کاربری با خطا مواجه شد.");
                 }
+                toast.success("اطلاعات شرکت با موفقیت ثبت شد.");
+                navigate("/");
             }
 
 
-            toast.success("اطلاعات شرکت با موفقیت ثبت شد.");
-            // navigate("/");
         } catch (err) {
             if (err.response && err.response.data) {
                 const errorData = err.response.data;
