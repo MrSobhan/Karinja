@@ -37,10 +37,19 @@ export function AuthProvider({ children }) {
       setDarkMode(true);
       document.documentElement.classList.add("dark");
     }
+
+    if(!user){
+      getMe()
+    }
   }, []);
 
   const isLogin = () => {
-    return Boolean(getLocalStorage("token"));
+    if(getLocalStorage("token")){
+      return Boolean(getLocalStorage("token"))
+    }else{
+      return false
+    }
+
   };
 
   const LoginUser = async (username, password) => {
@@ -56,13 +65,14 @@ export function AuthProvider({ children }) {
 
       if (res.status === 200 && data.access_token) {
         setLocalStorage("token", data.access_token);
+        setLocalStorage("idUser", data.user_id);
         const userObj = {
           user_id: data.user_id,
           user_role: data.user_role,
           user_full_name: data.user_full_name,
           user_status: data.user_status
         };
-        console.log(userObj);
+        // console.log(userObj);
         
         setUser(userObj);
 
@@ -92,31 +102,37 @@ export function AuthProvider({ children }) {
   };
 
   const getMe = async () => {
+    const token = getLocalStorage("token");
+    const userId = getLocalStorage("idUser");
     try {
-      const token = getLocalStorage("token");
 
-      const res = await axios.get(`/users/${user.user_id}`, {
+      const res = await axios.get(`${baseUrl}/users/${userId}`, {
         headers: {
           "accept": "application/json",
           "Authorization": `Bearer ${token}`,
         },
       });
-      const data = await res.json();
-      if (res.ok) setUser(data.user);
-      console.log(data);
+      const data = res.data;
+
+      const userObj = {
+        user_id: data.id,
+        user_role: data.role,
+        user_full_name: data.full_name,
+        user_status: data.account_status
+      };
+      
+      setUser(userObj);
 
     } catch (err) {
       console.error("getMe error:", err);
     }
   };
 
-  // const getUserObj = ()=> user
 
   return (
     <AuthContext
       value={{
         baseUrl,
-        // getUserObj,
         user,
         darkMode,
         toggleTheme,

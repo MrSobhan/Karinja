@@ -1,8 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { FiSearch, FiMapPin, FiChevronLeft, FiBriefcase, FiUsers, FiCalendar, FiGlobe } from "react-icons/fi";
-import { MdOutlineBusiness, MdOutlineFactory } from "react-icons/md";
-
+import { FiSearch } from "react-icons/fi";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -17,9 +15,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-
-import { IRAN_PROVINCES } from "@/constants/jobFilters";
-import { cn } from "@/lib/utils";
 import useAxios from "@/hooks/useAxios";
 
 const INDUSTRIES = [
@@ -62,6 +57,12 @@ const OWNERSHIP_TYPES = [
     "شرکتی",
 ];
 
+const emptyFilterState = {
+    full_name: "",
+    industry: "",
+    ownership_type: "",
+};
+
 const formatPersianDate = dateValue => {
     if (!dateValue) return null;
     try {
@@ -77,12 +78,6 @@ const formatPersianDate = dateValue => {
     }
 };
 
-const emptyFilterState = {
-    full_name: "",
-    industry: "",
-    ownership_type: "",
-};
-
 const CompaniesList = () => {
     const axiosInstance = useAxios();
     const navigate = useNavigate();
@@ -90,9 +85,11 @@ const CompaniesList = () => {
 
     const [formFilters, setFormFilters] = useState(emptyFilterState);
     const [companies, setCompanies] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [hasSearched, setHasSearched] = useState(false);
 
+    // You still want to keep filters in URL for UX, so on mount initialize manually but fetch only on user action
     const queryFilters = useMemo(() => {
         const nextFilters = { ...emptyFilterState };
         searchParams.forEach((value, key) => {
@@ -107,23 +104,44 @@ const CompaniesList = () => {
         document.title = "لیست شرکت‌ها | کاراینجا";
     }, []);
 
+    // Sync query filters to form fields
     useEffect(() => {
         setFormFilters(queryFilters);
     }, [queryFilters]);
 
+    // Only fetch companies when user submits the form (hasSearched === true)
     useEffect(() => {
+        if (!hasSearched) return;
         const controller = new AbortController();
-        const activeParams = Object.fromEntries(
-            Object.entries(queryFilters).filter(([, value]) => Boolean(value))
-        );
+
+        // Don't fetch anything if all filters empty - you may choose behavior, here show empty
+        // Can alternatively only search if at least one filter is present
+        const params = {};
+        Object.entries(queryFilters).forEach(([key, value]) => {
+            if (value) {
+                params[key] = value;
+            }
+        });
+
+        // No filters at all: show nothing (or you can fetch all, but here per request don't get at mount)
+        if (Object.keys(params).length === 0) {
+            setCompanies([]);
+            setLoading(false);
+            setError("");
+            return;
+        }
 
         const fetchCompanies = async () => {
             setLoading(true);
             setError("");
             try {
-                const response = await axiosInstance.get("/employer_companies/", {
-                    params: activeParams,
-                    signal: controller.signal,
+                const response = await axiosInstance.get("/employer_companies/search/", {
+                    params: {
+                        ...params,
+                        operator: "and",
+                        offset: 0,
+                        limit: 100,
+                    }
                 });
                 const rawData = response?.data;
                 const list = Array.isArray(rawData)
@@ -144,8 +162,8 @@ const CompaniesList = () => {
         fetchCompanies();
 
         return () => controller.abort();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [queryFilters]);
+        // eslint-disable-next-line
+    }, [queryFilters, hasSearched]);
 
     const handleInputChange = event => {
         const { name, value } = event.target;
@@ -165,11 +183,16 @@ const CompaniesList = () => {
             }
         });
         setSearchParams(paramsObject);
+        setHasSearched(true);
     };
 
     const handleResetFilters = () => {
         setFormFilters(emptyFilterState);
         setSearchParams({});
+        setCompanies([]);
+        setHasSearched(false);
+        setError("");
+        setLoading(false);
     };
 
     const handleRemoveFilter = key => {
@@ -180,6 +203,15 @@ const CompaniesList = () => {
                 Object.entries(nextFilters).filter(([, value]) => Boolean(value))
             )
         );
+        // If all filters are removed, reset state for empty results
+        if (
+            Object.entries(nextFilters).filter(([, value]) => Boolean(value)).length === 0
+        ) {
+            setCompanies([]);
+            setHasSearched(false);
+            setError("");
+            setLoading(false);
+        }
     };
 
     const activeFilterEntries = useMemo(
@@ -229,7 +261,7 @@ const CompaniesList = () => {
     return (
         <>
             <Navbar />
-            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-28 pb-16">
+            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-10 lg:pt-28 pb-16">
                 <section className="container px-4 mx-auto space-y-8" dir="rtl">
                     <header className="bg-white/80 dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-white/10 shadow-sm p-6 backdrop-blur">
                         <div className="flex flex-col gap-2 mb-8">
@@ -245,7 +277,7 @@ const CompaniesList = () => {
 
                         <form
                             onSubmit={handleSubmit}
-                            className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+                            className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
                         >
                             <div className="flex flex-col gap-2">
                                 <label htmlFor="full_name" className="text-xs text-muted-foreground">
@@ -305,15 +337,33 @@ const CompaniesList = () => {
                             </div>
 
                             <div className="flex items-end gap-3">
-                                <Button type="submit" className="flex-1 h-11">
+                                <Button type="submit" className="flex-1 h-11 flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" 
+                                        className="w-4 h-4"
+                                        fill="none"
+                                        viewBox="0 0 24 24" 
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
+                                    </svg>
                                     جستجوی شرکت‌ها
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    className="text-xs"
+                                    className="text-xs flex items-center gap-1"
                                     onClick={handleResetFilters}
                                 >
+                                    <svg xmlns="http://www.w3.org/2000/svg" 
+                                        className="w-3.5 h-3.5"
+                                        fill="none" 
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={2}
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
                                     حذف فیلترها
                                 </Button>
                             </div>
@@ -348,31 +398,30 @@ const CompaniesList = () => {
                     <section className="space-y-4">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-muted-foreground flex gap-x-2">
                                     نتایج یافت‌شده:
-                                    <span className="font-bold text-zinc-900 dark:text-white mr-2">
+                                    <span className="font-bold text-zinc-900 dark:text-white ">
                                         {loading ? "..." : companies.length}
                                     </span>
                                     شرکت
                                 </p>
-                                {activeFilterEntries.length > 0 && (
+                                {/* {activeFilterEntries.length > 0 && (
                                     <p className="text-xs text-muted-foreground">
                                         فیلترهای فعال:{" "}
                                         {activeFilterEntries
                                             .map(([key, value]) => renderFilterLabel(key, value))
                                             .join("، ")}
                                     </p>
-                                )}
+                                )} */}
                             </div>
-                            <Button
+                            {/* <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                                 className="self-start md:self-auto"
                             >
                                 بازگشت به بالا
-                                <FiChevronLeft />
-                            </Button>
+                            </Button> */}
                         </div>
 
                         {error && (
@@ -381,89 +430,98 @@ const CompaniesList = () => {
                             </div>
                         )}
 
-                        {loading ? (
-                            <div className="grid gap-4">{renderSkeletons()}</div>
-                        ) : companies.length === 0 ? (
-                            <Card className="border border-dashed">
-                                <CardContent className="py-12 text-center space-y-4">
-                                    <FiSearch className="w-8 h-8 mx-auto text-zinc-400" />
-                                    <p className="text-lg font-semibold">هیچ شرکتی مطابق جستجو پیدا نشد</p>
-                                    <p className="text-sm text-muted-foreground">
-                                        فیلترها را تغییر دهید یا کلمات کلیدی عمومی‌تر امتحان کنید.
-                                    </p>
-                                    <Button variant="outline" onClick={handleResetFilters}>
-                                        حذف همه فیلترها
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {companies.map(company => {
-                                    const createdDate = formatPersianDate(company.created_at);
-                                    return (
-                                        <Card
-                                            key={company.id}
-                                            className="border border-zinc-200/60 dark:border-white/10 shadow-sm hover:shadow-lg transition cursor-pointer"
-                                            onClick={() => navigate(`/company/${company.id}`)}
-                                        >
-                                            <CardHeader className="flex-row items-start gap-3">
-                                                <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-black dark:bg-white flex items-center justify-center">
-                                                    <MdOutlineBusiness className="text-white dark:text-black text-2xl" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <CardTitle className="text-lg font-bold mb-1">
-                                                        {company.full_name}
-                                                    </CardTitle>
-                                                    {company.industry && (
-                                                        <CardDescription className="text-sm">
-                                                            {company.industry}
-                                                        </CardDescription>
+                        {
+                            // Don't show loading skeleton before first search
+                            hasSearched && loading ? (
+                                <div className="grid gap-4">{renderSkeletons()}</div>
+                            ) : !hasSearched ? (
+                                <Card className="border border-dashed">
+                                    <CardContent className="py-12 text-center space-y-4">
+                                        <FiSearch className="w-8 h-8 mx-auto text-zinc-400" />
+                                        <p className="text-lg font-semibold">برای مشاهده نتایج، ابتدا فیلتر جستجو را انتخاب کنید</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            حداقل یکی از فیلترها را تعیین و جستجو را بزنید.
+                                        </p>
+                                    </CardContent>
+                                </Card>
+                            ) : companies.length === 0 ? (
+                                <Card className="border border-dashed">
+                                    <CardContent className="py-12 text-center space-y-4">
+                                        <FiSearch className="w-8 h-8 mx-auto text-zinc-400" />
+                                        <p className="text-lg font-semibold">هیچ شرکتی مطابق جستجو پیدا نشد</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            فیلترها را تغییر دهید یا کلمات کلیدی عمومی‌تر امتحان کنید.
+                                        </p>
+                                        <Button variant="outline" onClick={handleResetFilters}>
+                                            حذف همه فیلترها
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            ) : (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                    {companies.map(company => {
+                                        const createdDate = formatPersianDate(company.created_at);
+                                        return (
+                                            <Card
+                                                key={company.id}
+                                                className="border border-zinc-200/60 dark:border-white/10 shadow-sm hover:shadow-lg transition cursor-pointer"
+                                                onClick={() => navigate(`/company/${company.id}`)}
+                                            >
+                                                <CardHeader className="flex-row items-start gap-3">
+                                                    <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-black dark:bg-white flex items-center justify-center">
+                                                        <FiSearch className="text-white dark:text-black text-2xl" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <CardTitle className="text-lg font-bold mb-1">
+                                                            {company.full_name}
+                                                        </CardTitle>
+                                                        {company.industry && (
+                                                            <CardDescription className="text-sm">
+                                                                {company.industry}
+                                                            </CardDescription>
+                                                        )}
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    {company.summary && (
+                                                        <p className="text-sm text-zinc-600 dark:text-zinc-300 line-clamp-3">
+                                                            {company.summary}
+                                                        </p>
                                                     )}
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                {company.summary && (
-                                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 line-clamp-3">
-                                                        {company.summary}
-                                                    </p>
-                                                )}
-                                                <div className="flex flex-wrap gap-2 text-xs">
-                                                    {company.ownership_type && (
-                                                        <Badge variant="secondary" className="text-xs">
-                                                            <FiBriefcase className="ml-1 text-xs" />
-                                                            {company.ownership_type}
-                                                        </Badge>
+                                                    <div className="flex flex-wrap gap-2 text-xs">
+                                                        {company.ownership_type && (
+                                                            <Badge variant="secondary" className="text-xs">
+                                                                {company.ownership_type}
+                                                            </Badge>
+                                                        )}
+                                                        {company.employee_count && (
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {company.employee_count}
+                                                            </Badge>
+                                                        )}
+                                                        {company.founded_year && (
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {company.founded_year}
+                                                            </Badge>
+                                                        )}
+                                                        {company.website_address && (
+                                                            <Badge variant="outline" className="text-xs">
+                                                                وب‌سایت
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+                                                    {createdDate && (
+                                                        <p className="text-xs text-muted-foreground">
+                                                            ثبت شده در {createdDate}
+                                                        </p>
                                                     )}
-                                                    {company.employee_count && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            <FiUsers className="ml-1 text-xs" />
-                                                            {company.employee_count}
-                                                        </Badge>
-                                                    )}
-                                                    {company.founded_year && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            <FiCalendar className="ml-1 text-xs" />
-                                                            {company.founded_year}
-                                                        </Badge>
-                                                    )}
-                                                    {company.website_address && (
-                                                        <Badge variant="outline" className="text-xs">
-                                                            <FiGlobe className="ml-1 text-xs" />
-                                                            وب‌سایت
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                {createdDate && (
-                                                    <p className="text-xs text-muted-foreground">
-                                                        ثبت شده در {createdDate}
-                                                    </p>
-                                                )}
-                                            </CardContent>
-                                        </Card>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            )
+                        }
                     </section>
                 </section>
             </main>
@@ -473,4 +531,3 @@ const CompaniesList = () => {
 };
 
 export default CompaniesList;
-

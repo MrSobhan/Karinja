@@ -13,6 +13,8 @@ import JobsSearch from "./pages/JobsSearch";
 import JobDetail from "./pages/JobDetail";
 import CompanyDetail from "./pages/CompanyDetail";
 import CompaniesList from "./pages/CompaniesList";
+import BlogsList from "./pages/BlogsList";
+import BlogDetail from "./pages/BlogDetail";
 
 import DevAuth from "@/components/DevAuth";
 
@@ -48,6 +50,7 @@ import MyPersonalInformations from "./components/DashboardAdmin/my_personal_info
 import Search from "./components/DashboardAdmin/search";
 import Blogs from "./components/DashboardAdmin/blogs";
 import Tickets from "./components/DashboardAdmin/tickets";
+import Settings from "./components/DashboardAdmin/Settings";
 
 
 export default function App() {
@@ -66,6 +69,8 @@ export default function App() {
     { path: "/job/:id", element: <JobDetail /> },
     { path: "/company/:id", element: <CompanyDetail /> },
     { path: "/companies", element: <CompaniesList /> },
+    { path: "/blogs", element: <BlogsList /> },
+    { path: "/blog/:id", element: <BlogDetail /> },
     {
       path: "/dashboard/*",
       element: (
@@ -239,6 +244,14 @@ export default function App() {
           element: (
             <RouteGuard allowedRoles={["full_admin", "admin" ,"employer"  ,"job_seeker"]}>
               <Tickets />
+            </RouteGuard>
+          ) 
+        },
+        { 
+          path: "settings", 
+          element: (
+            <RouteGuard>
+              <Settings />
             </RouteGuard>
           ) 
         },

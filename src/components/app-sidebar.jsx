@@ -22,9 +22,8 @@ import {
   BookText,
   Brain,
   BriefcaseBusiness,
-  Rss 
+  Rss
 } from "lucide-react"
-
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { HiOutlineLocationMarker } from "react-icons/hi";
@@ -65,7 +64,7 @@ export function AppSidebar({ ...props }) {
         navSecondary: [
           {
             title: "تنظیمات",
-            url: "#",
+            url: "/dashboard/settings",
             icon: SettingsIcon,
           },
           {
@@ -166,19 +165,14 @@ export function AppSidebar({ ...props }) {
             title: "وبلاگ ها",
             titleSite: "Blogs",
             url: "/dashboard/blogs",
-            icon: Rss ,
+            icon: Rss,
           },
-          {
-            title: "اعلان ها",
-            titleSite: "Notifications",
-            url: "/dashboard/notifications",
-            icon: Bell,
-          }
+
         ],
         navSecondary: [
           {
             title: "تنظیمات",
-            url: "#",
+            url: "/dashboard/settings",
             icon: SettingsIcon,
           },
           {
@@ -267,19 +261,14 @@ export function AppSidebar({ ...props }) {
             title: "وبلاگ ها",
             titleSite: "Blogs",
             url: "/dashboard/blogs",
-            icon: Rss ,
+            icon: Rss,
           },
-          {
-            title: "اعلان ها",
-            titleSite: "Notifications",
-            url: "/dashboard/notifications",
-            icon: Bell,
-          }
+
         ],
         navSecondary: [
           {
             title: "تنظیمات",
-            url: "#",
+            url: "/dashboard/settings",
             icon: SettingsIcon,
           },
           {
@@ -328,17 +317,12 @@ export function AppSidebar({ ...props }) {
             url: "/dashboard/job-application",
             icon: UserPen,
           },
-          {
-            title: "اعلان ها",
-            titleSite: "Notifications",
-            url: "/dashboard/notifications",
-            icon: Bell,
-          }
+
         ],
         navSecondary: [
           {
             title: "تنظیمات",
-            url: "#",
+            url: "/dashboard/settings",
             icon: SettingsIcon,
           },
           {
@@ -399,17 +383,12 @@ export function AppSidebar({ ...props }) {
             url: "/dashboard/images",
             icon: CameraIcon,
           },
-          {
-            title: "اعلان ها",
-            titleSite: "Notifications",
-            url: "/dashboard/notifications",
-            icon: Bell,
-          }
+
         ],
         navSecondary: [
           {
             title: "تنظیمات",
-            url: "#",
+            url: "/dashboard/settings",
             icon: SettingsIcon,
           },
           {
@@ -475,11 +454,20 @@ export function AppSidebar({ ...props }) {
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <Link to="/" className="flex items-center gap-1 mb-3">
+          <SidebarMenuItem className="flex justify-between mb-3">
+            <Link to="/" className="flex items-center gap-1">
               <HiOutlineLocationMarker className="text-3xl text-gray-800 dark:text-white" />
               <span className="text-2xl font-semibold moraba">کاراینجا</span>
             </Link>
+              <Link to={"/dashboard/notifications"} className="relative group">
+                <Bell
+                  className="w-5 cursor-pointer transition-transform duration-150 active:scale-110"
+                  style={{ verticalAlign: "middle" }}
+                />
+                <span
+                  className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse group-hover:animate-none"
+                />
+              </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

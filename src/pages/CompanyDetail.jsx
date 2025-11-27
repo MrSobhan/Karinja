@@ -350,7 +350,7 @@ export default function CompanyDetail() {
                         </div>
 
                         {/* Sidebar - Actions */}
-                        <div className="space-y-6">
+                        <div className="space-y-6 !max-h-min sticky top-28 left-0">
                             <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                                 <CardHeader>
                                     <CardTitle>اطلاعات</CardTitle>

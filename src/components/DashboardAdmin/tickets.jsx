@@ -4,14 +4,44 @@ import { toast, Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import {
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
+} from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { LuLoaderCircle } from "react-icons/lu";
+import { SiAnswer } from "react-icons/si";
 import { DataTable } from "@/components/data-table";
 import AuthContext from "@/context/authContext";
 import { z } from "zod";
+
+function toJalaliString(date) {
+    if (!date) return "";
+    return new Date(date).toLocaleString("fa-IR-u-ca-persian", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
 
 const STATUS_OPTIONS = [
     { value: "باز", label: "باز" },
@@ -39,12 +69,10 @@ const ticketSchema = z.object({
     status: z.enum(["باز", "بسته"]),
     ticket_type: z.string(),
     priority: z.string(),
-    requester_user_id: z.string().min(1, "ارسال کننده الزامی است"),
-    receiver_user_id: z.string().optional(),
+    requester_user_id: z.string(),
     image_url: z.string().optional(),
 });
 
-// Lightweight simple text editor for reply/message (multiline textarea)
 function EditorField({ value, setValue, placeholder = "پاسخ خود را وارد کنید..." }) {
     const textareaRef = useRef(null);
     return (
@@ -59,166 +87,332 @@ function EditorField({ value, setValue, placeholder = "پاسخ خود را وا
     );
 }
 
-// Ticket conversation view (Like chat)
-function TicketConversation({ ticket, isAdmin, onSendAnswer, sending }) {
+function TicketConversation({
+    ticket,
+    isInbox,
+    onSendAnswer,
+    sending,
+    onEdit,
+    canEdit,
+}) {
     const [reply, setReply] = useState("");
     const [answerDialogOpen, setAnswerDialogOpen] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [editForm, setEditForm] = useState({
+        subject: ticket.subject,
+        description: ticket.description,
+        priority: ticket.priority,
+        ticket_type: ticket.ticket_type,
+    });
+    const [editErrors, setEditErrors] = useState({});
 
-    // Show admin (for admins) question or user's own side
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditForm((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
+    const handleEditSave = async () => {
+        setEditErrors({});
+        try {
+            ticketSchema.parse({ ...ticket, ...editForm });
+            await onEdit(ticket, editForm); // call parent
+            setEditMode(false);
+        } catch (err) {
+            if (err instanceof z.ZodError) {
+                const errs = {};
+                err.errors.forEach((zerr) => {
+                    errs[zerr.path[0]] = zerr.message;
+                });
+                setEditErrors(errs);
+            }
+        }
+    };
+
     return (
-        <div className="bg-muted rounded-lg p-4 my-3 flex flex-col gap-3">
-            <div>
-                <p>
-                    <span className="font-bold min-w-20 inline-block">موضوع:</span> {ticket.subject}
-                </p>
-                <p>
-                    <span className="font-bold min-w-20 inline-block">متن تیکت:</span> {ticket.description}
-                </p>
-                {ticket.image_url && (
-                    <img src={ticket.image_url} alt="ضمیمه" className="mt-4 max-w-xs w-full" />
-                )}
-                <div className="flex gap-2 flex-row-reverse mt-2">
-                    <span className="badge badge-primary">{ticket.status}</span>
-                    <span className="badge badge-ghost">{ticket.priority}</span>
-                    <span className="badge badge-outline">{ticket.ticket_type}</span>
-                </div>
-            </div>
-            <hr />
-            <div>
-                <span className="font-semibold">پاسخ مدیر:</span>
-                <div className="p-2 mt-1">
-                    {ticket.answer
-                        ? (
-                            <div>
-                                {ticket.answer}
-                            </div>
-                        )
-                        : (
-                            <span className="text-gray-400 text-sm">{isAdmin ? "هنوز پاسخی ثبت نشده" : "هنوز پاسخی دریافت نکرده اید"}</span>
-                        )
-                    }
-                </div>
-            </div>
-            {isAdmin && (
-                <div className="flex mt-3">
-                    <Button
-                        variant="outline"
-                        onClick={() => setAnswerDialogOpen(true)}
-                        className="mr-auto"
-                    >
-                        پاسخ دادن
-                    </Button>
-                    <Dialog open={answerDialogOpen} onOpenChange={setAnswerDialogOpen}>
-                        <DialogContent className="sm:max-w-[425px]">
-                            <DialogHeader>
-                                <DialogTitle>درج پاسخ</DialogTitle>
-                            </DialogHeader>
-                            <EditorField value={reply} setValue={setReply} />
-                            <DialogFooter>
+        <div className="rounded-lg p-4 my-3 flex flex-col gap-3">
+            {!editMode ? (
+                <>
+                    <div>
+                        <p>
+                            <span className="min-w-20 inline-block">موضوع:</span> {ticket.subject}
+                        </p>
+                        <p>
+                            <span className="min-w-20 inline-block">متن تیکت:</span> {ticket.description}
+                        </p>
+                        {ticket.image_url && (
+                            <img src={ticket.image_url} alt="ضمیمه" className="mt-4 max-w-xs w-full" />
+                        )}
+                        <div className="flex gap-2 my-3 items-center">
+                            <Badge variant="default" className="flex items-center gap-1" title="وضعیت تیکت">
+                                <span className="font-bold">وضعیت:</span>
+                                {ticket.status}
+                            </Badge>
+                            <Badge variant="secondary" className="flex items-center gap-1" title="اولویت تیکت">
+                                <span className="font-bold">اولویت:</span>
+                                {ticket.priority}
+                            </Badge>
+                            <Badge variant="outline" className="flex items-center gap-1" title="نوع تیکت">
+                                <span className="font-bold">نوع:</span>
+                                {ticket.ticket_type}
+                            </Badge>
+                        </div>
+                        <div className="mt-2 text-gray-400 text-xs">
+                            <span className="">تاریخ ایجاد: </span>
+                            {toJalaliString(ticket.created_at)}
+                        </div>
+                    </div>
+                    <hr />
+                    <div>
+                        <span className="font-semibold">پاسخ:</span>
+                        <div className="p-2 mt-1">
+                            {ticket.answer ?
+                                <div>{ticket.answer}</div>
+                                :
+                                <span className="text-gray-400 text-sm">
+                                    هنوز پاسخی ثبت نشده
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    {isInbox && (
+                        <div className="flex mt-3">
+                            <Button
+                                variant="outline"
+                                onClick={() => setAnswerDialogOpen(true)}
+                                className="mr-auto bg-black text-white dark:bg-white dark:text-black border-gray-300 dark:border-gray-600 "
+                            >
+                                <SiAnswer /> پاسخ به تیکت
+                            </Button>
+                            <Dialog open={answerDialogOpen} onOpenChange={setAnswerDialogOpen}>
+                                <DialogContent className="sm:max-w-[425px]">
+                                    <DialogHeader>
+                                        <DialogTitle>پاسخ به تیکت</DialogTitle>
+                                    </DialogHeader>
+                                    <EditorField value={reply} setValue={setReply} />
+                                    <DialogFooter>
+                                        <Button
+                                            variant="outline"
+                                            className="ml-2"
+                                            onClick={() => setAnswerDialogOpen(false)}
+                                            disabled={sending}
+                                        >
+                                            انصراف
+                                        </Button>
+                                        <Button
+                                            onClick={async () => {
+                                                await onSendAnswer(ticket, reply);
+                                                setReply("");
+                                                setAnswerDialogOpen(false);
+                                            }}
+                                            disabled={sending || !reply.trim()}
+                                        >
+                                            ارسال
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                            {canEdit && (
                                 <Button
                                     variant="outline"
-                                    className="ml-2"
-                                    onClick={() => setAnswerDialogOpen(false)}
-                                    disabled={sending}
+                                    className="ml-2 mr-2"
+                                    onClick={() => setEditMode(true)}
                                 >
-                                    انصراف
+                                    ویرایش
                                 </Button>
-                                <Button
-                                    onClick={async () => {
-                                        await onSendAnswer(ticket, reply);
-                                        setReply("");
-                                        setAnswerDialogOpen(false);
-                                    }}
-                                    disabled={sending || !reply.trim()}
-                                >
-                                    ارسال
-                                </Button>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                            )}
+                        </div>
+                    )}
+                </>
+            ) : (
+                <div>
+                    <div>
+                        <Label>موضوع</Label>
+                        <Input
+                            name="subject"
+                            value={editForm.subject}
+                            onChange={handleEditChange}
+                            className={editErrors.subject ? "border-red-500" : ""}
+                        />
+                        {editErrors.subject && (
+                            <span className="text-red-500 text-xs">{editErrors.subject}</span>
+                        )}
+                    </div>
+                    <div className="mt-3">
+                        <Label>متن تیکت</Label>
+                        <Textarea
+                            name="description"
+                            value={editForm.description}
+                            onChange={handleEditChange}
+                            className={editErrors.description ? "border-red-500" : ""}
+                        />
+                        {editErrors.description && (
+                            <span className="text-red-500 text-xs">{editErrors.description}</span>
+                        )}
+                    </div>
+                    <div className="flex gap-3 mt-3">
+                        <div className="flex-1">
+                            <Label>اولویت</Label>
+                            <Select
+                                value={editForm.priority}
+                                onValueChange={val =>
+                                    setEditForm((prev) => ({ ...prev, priority: val }))
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="انتخاب اولویت" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {PRIORITY_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex-1">
+                            <Label>نوع</Label>
+                            <Select
+                                value={editForm.ticket_type}
+                                onValueChange={val =>
+                                    setEditForm((prev) => ({ ...prev, ticket_type: val }))
+                                }
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="انتخاب نوع" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {TYPE_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter className="mt-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => setEditMode(false)}
+                        >
+                            انصراف
+                        </Button>
+                        <Button
+                            onClick={handleEditSave}
+                        >
+                            ذخیره
+                        </Button>
+                    </DialogFooter>
                 </div>
             )}
         </div>
     );
 }
 
-// Compose Ticket Drawer/Dialog
 function ComposeTicketDialog({
-    open, setOpen, users, myUser, onSubmit, loading,
+    open,
+    setOpen,
+    users,
+    myUser,
+    onSubmit,
+    loading,
 }) {
-    // Only for users, not admin. Admin's compose could be handled here too by passing props if needed.
+    
     const [form, setForm] = useState({
         subject: "",
         description: "",
         ticket_type: "سوال",
         priority: "متوسط",
         status: "باز",
-        requester_user_id: myUser?.id ?? "",
-        receiver_user_id: "", // dest user: full_admin | admin only
+        requester_user_id: myUser?.user_id ?? "",
         image_url: "",
+        file: null,
     });
     const [errors, setErrors] = useState({});
     const fileRef = useRef();
 
     useEffect(() => {
-        setForm(f => ({
+        setForm((f) => ({
             ...f,
-            requester_user_id: myUser?.id ?? ""
+            requester_user_id:
+                users && users.length > 0 ? users[0].id : myUser?.id ?? "",
         }));
-        // For user: default send to "admin" or "full_admin"
-        if (users && users.length) {
-            setForm(f => ({
-                ...f,
-                receiver_user_id: users[0].id
-            }));
-        }
     }, [myUser, users, open]);
 
-    const handleChange = e => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-        setForm(prev => ({
+        setForm((prev) => ({
             ...prev,
             [name]: value,
         }));
     };
 
     const handleSelectChange = (name, value) => {
-        setForm(prev => ({
+        setForm((prev) => ({
             ...prev,
             [name]: value,
         }));
     };
 
-    // Just show file preview (not uploading)
     const handleImage = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            setForm(prev => ({
+            setForm((prev) => ({
                 ...prev,
-                image_url: URL.createObjectURL(file)
+                image_url: URL.createObjectURL(file),
+                file: file,
             }));
-            // In real world: upload image and set backend url
         }
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
+        
+
         try {
             ticketSchema.parse(form);
-            onSubmit(form);
+            let submissionData = {
+                subject: form.subject,
+                description: form.description,
+                ticket_type: form.ticket_type,
+                priority: form.priority,
+                status: form.status,
+                requester_user_id: myUser?.user_id,
+                answer: "",
+            };
+
+
+            if (form.file) {
+                const fd = new FormData();
+                Object.entries(submissionData).forEach(([key, val]) => {
+                    fd.append(key, val);
+                });
+                fd.append("image", form.file);
+                await onSubmit(fd, true);
+            } else {
+                await onSubmit(submissionData, false);
+                
+            }
+
             setForm({
                 subject: "",
                 description: "",
                 ticket_type: "سوال",
                 priority: "متوسط",
                 status: "باز",
-                requester_user_id: myUser?.id ?? "",
-                receiver_user_id: users?.[0]?.id ?? "",
+                requester_user_id:
+                    users && users.length > 0 ? users[0].id : myUser?.id ?? "",
                 image_url: "",
+                file: null,
             });
             setOpen(false);
         } catch (err) {
+            
             if (err instanceof z.ZodError) {
                 const errs = {};
                 err.errors.forEach((zerr) => {
@@ -290,8 +484,8 @@ function ComposeTicketDialog({
                         <div className="flex-1">
                             <Label>ارسال برای</Label>
                             <Select
-                                value={form.receiver_user_id}
-                                onValueChange={val => handleSelectChange("receiver_user_id", val)}
+                                value={form.requester_user_id}
+                                onValueChange={val => handleSelectChange("requester_user_id", val)}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="انتخاب مدیر" />
@@ -306,7 +500,7 @@ function ComposeTicketDialog({
                             </Select>
                         </div>
                     )}
-                    <div>
+                    {/* <div>
                         <Label>ضمیمه</Label>
                         <input
                             type="file"
@@ -318,7 +512,7 @@ function ComposeTicketDialog({
                         {form.image_url && (
                             <img src={form.image_url} alt="ضمیمه" className="mt-3 max-w-[120px]" />
                         )}
-                    </div>
+                    </div> */}
                     <DialogFooter>
                         <Button
                             variant="outline"
@@ -341,25 +535,38 @@ function ComposeTicketDialog({
     );
 }
 
-const headers = [
+const ticketsHeaders = [
     { key: "subject", label: "موضوع" },
     { key: "priority", label: "اولویت" },
     { key: "ticket_type", label: "نوع" },
     { key: "status", label: "وضعیت" },
-    { key: "created_at", label: "ایجاد" },
-    { key: "updated_at", label: "آخرین بروزرسانی" },
+    {
+        key: "created_at",
+        label: "تاریخ ایجاد",
+        render: (cellValue) => {
+            try {
+                if (!cellValue) return "-";
+                if (typeof PersianCalendar === "function") {
+                    return PersianCalendar(cellValue);
+                }
+                return new Intl.DateTimeFormat("fa-IR", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                }).format(new Date(cellValue));
+            } catch (e) {
+                return cellValue;
+            }
+        }
+    }
 ];
 
 const Tickets = () => {
-    // --- get current user (from local storage or context? for now, from access-token user object)
-    const [me, setMe] = useState(null); // { id, role, ... }
-    const [managerUsers, setManagerUsers] = useState([]); // Only admin, full_admin for send
-    const [usersMap, setUsersMap] = useState({}); // for admin - search by id
+    const [me, setMe] = useState(null);
+    const [managerUsers, setManagerUsers] = useState([]);
+    const [usersMap, setUsersMap] = useState({});
     const axiosInstance = useAxios();
 
-    // TABS:
-    //   inbox: tickets where current user is receiver (admin), or where current user is requester (user)
-    //   sent: tickets where current user is sender (requester_user_id === me.id)
     const [activeTab, setActiveTab] = useState("inbox");
     const [loading, setLoading] = useState(true);
     const [ticketsInbox, setTicketsInbox] = useState([]);
@@ -368,35 +575,35 @@ const Tickets = () => {
     const [showCompose, setShowCompose] = useState(false);
     const [sending, setSending] = useState(false);
     const authContext = useContext(AuthContext);
-    // -- Compose for Admin users
-    const [composeAsAdmin, setComposeAsAdmin] = useState(false);
-    const [adminTicketTargetUser, setAdminTicketTargetUser] = useState(null);
 
-    // Current user's role
-    const isAdmin = authContext.user.user_role === "admin" || authContext.user.user_role === "full_admin";
-
-    // Fetch user profile
+    // Parse user profile correctly from context (fix context usage and normalization)
     useEffect(() => {
-        // TODO: Replace below mock with real user state/context/auth
-        const userRaw = authContext.user;
+        let userRaw = authContext?.user;
         let user = null;
-        if (userRaw) {
+        // handle both string and object
+        if (typeof userRaw === "string") {
             try {
                 user = JSON.parse(userRaw);
-            } catch { }
+            } catch {
+                user = null;
+            }
+        } else if (typeof userRaw === "object" && userRaw) {
+            user = userRaw;
         }
         setMe(user);
-    }, []);
+    }, [authContext?.user]);
 
     // Fetch admins for users to send (for "new ticket")
     const fetchAdminUsers = async () => {
         try {
             const res = await axiosInstance.get(`/users`);
             if (res.data) {
-                const admins = res.data.filter(u => ["admin", "full_admin"].includes(u.role));
+                const admins = res.data.filter((u) =>
+                    ["admin", "full_admin"].includes(u.role)
+                );
                 setManagerUsers(admins);
                 const map = {};
-                res.data.forEach(u => {
+                res.data.forEach((u) => {
                     map[u.id] = u;
                 });
                 setUsersMap(map);
@@ -406,23 +613,29 @@ const Tickets = () => {
         }
     };
 
-
-    // Fetch tickets (inbox & sent) depending on role & current tab
+    // Fetch tickets (fix logic for filtering!)
     const fetchTickets = async () => {
         setLoading(true);
         try {
             const res = await axiosInstance.get(`/tickets`);
-            console.log(res);
             const allTickets = res.data;
-            if (isAdmin) {
-                setTicketsInbox(allTickets.filter(t => t.requester_user != me.user_id));
-                setTicketsSent(allTickets.filter(t => t.requester_user == me.user_id));
-            } else {
-                const myTickets = allTickets.filter(t => t.requester_user == me.user_id);
-                setTicketsInbox(myTickets);
-                setTicketsSent(myTickets);
+            if (!me) {
+                setTicketsInbox([]);
+                setTicketsSent([]);
+                setLoading(false);
+                return;
             }
-        } catch {
+            console.log(allTickets);
+            
+            const myId = me.user_id;
+            setTicketsInbox(
+                allTickets.filter((t) => t.requester_user.id != myId)
+            );
+            setTicketsSent(
+                allTickets.filter((t) => t.requester_user.id == myId)
+            );
+        } catch (err){
+            
             setTicketsInbox([]);
             setTicketsSent([]);
             toast.error("خطا در دریافت تیکت‌ها");
@@ -432,43 +645,56 @@ const Tickets = () => {
 
     useEffect(() => {
         fetchAdminUsers();
-        fetchTickets();
     }, []);
 
-    // SENDING TICKET (new)
-    const handleCreateTicket = async (values) => {
+    useEffect(() => {
+        if (me) fetchTickets();
+    }, [me]);
+
+    const handleCreateTicket = async (values, isFormData = false) => {        
         setSending(true);
         try {
-            // "answer" not sent by default (only admin may fill on reply)
-            const ticketData = {
-                subject: values.subject,
-                description: values.description,
-                answer: "",
-                status: "باز",
-                ticket_type: values.ticket_type,
-                priority: values.priority,
-                requester_user_id: values.requester_user_id,
-                receiver_user_id: values.receiver_user_id,
-                image_url: values.image_url || "",
-            };
-            await axiosInstance.post(`/tickets/`, ticketData);
+            let res;
+            if (isFormData) {
+                res = await axiosInstance.post(`/tickets`, values, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+            } else {
+                res = await axiosInstance.post(`/tickets`, {
+                    ...values,
+                });
+            }
             toast.success("تیکت با موفقیت ارسال شد");
             setShowCompose(false);
             fetchTickets();
-        } catch {
-            toast.error("خطا در ارسال تیکت");
+        } catch (err) {
+            if (
+                err &&
+                err.response &&
+                err.response.data &&
+                err.response.data.message
+            ) {
+                toast.error(
+                    "خطا در ارسال تیکت: " + err.response.data.message
+                );
+            } else {
+                toast.error("خطا در ارسال تیکت");
+            }
         }
         setSending(false);
     };
 
-    // ADMIN responds to a ticket
-    const handleAdminAnswerTicket = async (ticket, answer) => {
+    const handleSendAnswer = async (ticket, answer) => {
         setSending(true);
         try {
             await axiosInstance.patch(`/tickets/${ticket.id}`, {
-                answer, status: "بسته"
+                answer,
+                status: "بسته شد",
             });
-            toast.success("پاسخ با موفقیت ارسال شد");
+
+            toast.success("پاسخ شما ثبت شد");
             fetchTickets();
         } catch {
             toast.error("خطا در ارسال پاسخ");
@@ -476,32 +702,65 @@ const Tickets = () => {
         setSending(false);
     };
 
-    // admin opens dialog to send ticket to user
-    const openAdminTicketDialog = (user) => {
-        setComposeAsAdmin(true);
-        setAdminTicketTargetUser(user);
+    const handleDeleteTicket = async (ticket) => {
+        if (
+            !window.confirm(
+                "آیا مطمئنید که می‌خواهید این تیکت را حذف کنید؟"
+            )
+        )
+            return;
+        setSending(true);
+        try {
+            await axiosInstance.delete(`/tickets/${ticket.id}`);
+            toast.success("تیکت حذف شد");
+            fetchTickets();
+        } catch {
+            toast.error("خطا در حذف تیکت");
+        }
+        setSending(false);
+        setSelectedTicket(null);
     };
 
-    // --- Render
+    const handleEditTicket = async (ticket, newData) => {
+        setSending(true);
+        try {
+            await axiosInstance.patch(`/tickets/${ticket.id}`, {
+                ...newData,
+            });
+            toast.success("تیکت با موفقیت ویرایش شد");
+            fetchTickets();
+        } catch {
+            toast.error("خطا در ویرایش تیکت");
+        }
+        setSending(false);
+        setSelectedTicket((t) => ({ ...t, ...newData }));
+    };
+
     return (
         <div className="p-4" dir="rtl">
-            <Toaster />
+            <Toaster className="dana"/>
             <h1 className="text-2xl moraba font-bold mb-6">مدیریت تیکت‌ها</h1>
-            {!(ticketsInbox && ticketsSent)
-                ? <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10 text-black dark:text-white" />
-                : <>
+            {loading ? (
+                <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10 text-black dark:text-white" />
+            ) : (
+                <>
                     <div className="flex gap-2 mb-5 items-center justify-between">
                         <Tabs value={activeTab} onValueChange={setActiveTab}>
                             <TabsList>
-                                <TabsTrigger value="inbox">صندوق دریافتی</TabsTrigger>
-                                <TabsTrigger value="sent">ارسالی‌ها</TabsTrigger>
+                                <TabsTrigger value="inbox">
+                                    صندوق دریافتی
+                                </TabsTrigger>
+                                <TabsTrigger value="sent">
+                                    صندوق ارسالی‌
+                                </TabsTrigger>
                             </TabsList>
                         </Tabs>
-                        <Button onClick={() => {
-                            setAdminTicketTargetUser(null);
-                            setComposeAsAdmin(false);
-                            setShowCompose(true);
-                        }}>
+                        <Button
+                        className={`${activeTab == "inbox" ? 'hidden' : ''}`}
+                            onClick={() => {
+                                setShowCompose(true);
+                            }}
+                        >
                             ثبت تیکت جدید
                         </Button>
                     </div>
@@ -511,55 +770,48 @@ const Tickets = () => {
                             {loading ? (
                                 <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10 text-black dark:text-white" />
                             ) : (
-                                <>
-                                    <DataTable
-                                        headers={headers}
-                                        data={ticketsInbox}
-                                        valueMappings={{
-                                            created_at: (v) => (v ? (new Date(v)).toLocaleString("fa-IR") : ""),
-                                            updated_at: (v) => (v ? (new Date(v)).toLocaleString("fa-IR") : ""),
-                                            ticket_type: v => v,
-                                            status: v => v,
-                                            priority: v => v,
-                                        }}
-                                        onEdit={row => setSelectedTicket(row)}
-                                        hideActions={false}
-                                        onDelete={null}
-                                        editLabel="مشاهده/پاسخ"
-                                        deleteLabel={null}
-                                    />
-                                </>
+                                <DataTable
+                                    headers={ticketsHeaders}
+                                    data={ticketsInbox}
+                                    valueMappings={{
+                                        created_at: (v) => v,
+                                        ticket_type: (v) => v,
+                                        status: (v) => v,
+                                        priority: (v) => v,
+                                    }}
+                                    onEdit={(row) => setSelectedTicket(row)}
+                                    onDelete={handleDeleteTicket}
+                                    hideActions={false}
+                                    editLabel="مشاهده/پاسخ"
+                                    deleteLabel="حذف"
+                                />
                             )}
                         </TabsContent>
                         <TabsContent value="sent">
                             {loading ? (
                                 <LuLoaderCircle className="animate-spin h-8 w-8 mx-auto mt-10 text-black dark:text-white" />
                             ) : (
-                                <>
-                                    <DataTable
-                                        headers={headers}
-                                        data={ticketsSent}
-                                        valueMappings={{
-                                            created_at: (v) => (v ? (new Date(v)).toLocaleString("fa-IR") : ""),
-                                            updated_at: (v) => (v ? (new Date(v)).toLocaleString("fa-IR") : ""),
-                                            ticket_type: v => v,
-                                            status: v => v,
-                                            priority: v => v,
-                                        }}
-                                        onEdit={row => setSelectedTicket(row)}
-                                        hideActions={false}
-                                        onDelete={null}
-                                        editLabel="مشاهده"
-                                        deleteLabel={null}
-                                    />
-                                </>
+                                <DataTable
+                                    headers={ticketsHeaders}
+                                    data={ticketsSent}
+                                    valueMappings={{
+                                        created_at: (v) => v,
+                                        ticket_type: (v) => v,
+                                        status: (v) => v,
+                                        priority: (v) => v,
+                                    }}
+                                    onEdit={(row) => setSelectedTicket(row)}
+                                    onDelete={handleDeleteTicket}
+                                    hideActions={false}
+                                    editLabel="مشاهده"
+                                    deleteLabel="حذف"
+                                />
                             )}
                         </TabsContent>
                     </Tabs>
                 </>
-            }
+            )}
 
-            {/* Compose for normal users */}
             <ComposeTicketDialog
                 open={showCompose}
                 setOpen={setShowCompose}
@@ -569,20 +821,12 @@ const Tickets = () => {
                 loading={sending}
             />
 
-            {/* Compose ticket as admin (send to any user) */}
-            {isAdmin && composeAsAdmin && adminTicketTargetUser && (
-                <ComposeTicketDialog
-                    open={composeAsAdmin}
-                    setOpen={setComposeAsAdmin}
-                    users={[adminTicketTargetUser]}
-                    myUser={me}
-                    onSubmit={handleCreateTicket}
-                    loading={sending}
-                />
-            )}
-
-            {/* See ticket details / reply */}
-            <Dialog open={!!selectedTicket} onOpenChange={v => setSelectedTicket(v ? selectedTicket : null)}>
+            <Dialog
+                open={!!selectedTicket}
+                onOpenChange={(v) =>
+                    setSelectedTicket(v ? selectedTicket : null)
+                }
+            >
                 <DialogContent className="sm:max-w-[460px]">
                     <DialogHeader>
                         <DialogTitle>جزئیات تیکت</DialogTitle>
@@ -590,19 +834,21 @@ const Tickets = () => {
                     {selectedTicket ? (
                         <TicketConversation
                             ticket={selectedTicket}
-                            isAdmin={isAdmin && selectedTicket.status !== "بسته"}
-                            onSendAnswer={handleAdminAnswerTicket}
+                            isInbox={
+                                ticketsInbox.find(
+                                    (t) => t.id === selectedTicket.id
+                                ) !== undefined
+                            }
+                            onSendAnswer={handleSendAnswer}
                             sending={sending}
+                            onEdit={handleEditTicket}
+                            canEdit={
+                                ticketsSent.find(
+                                    (t) => t.id === selectedTicket.id
+                                ) !== undefined
+                            }
                         />
                     ) : null}
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setSelectedTicket(null)}
-                        >
-                            بستن
-                        </Button>
-                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

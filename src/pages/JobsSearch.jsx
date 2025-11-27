@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { FiSearch, FiMapPin, FiBriefcase, FiChevronLeft } from "react-icons/fi";
 import { MdOutlineWorkOutline } from "react-icons/md";
@@ -33,9 +33,17 @@ const STATUS_INTENTS = {
 const JOB_TYPE_BADGE = {
     "تمام‌وقت": "bg-blue-50 text-blue-600 border-blue-200",
     "پاره‌وقت": "bg-purple-50 text-purple-600 border-purple-200",
-    "کارآموزی": "bg-amber-50 text-amber-700 border-amber-200",
+    "کارآموز": "bg-amber-50 text-amber-700 border-amber-200",
+    "قراردادی": "bg-indigo-50 text-indigo-700 border-indigo-200",
+    "موقت": "bg-pink-50 text-pink-700 border-pink-200",
+    "داوطلبانه": "bg-green-50 text-green-700 border-green-200",
+    "سایر": "bg-slate-100 text-slate-700 border-slate-200",
     remote: "bg-teal-50 text-teal-700 border-teal-200",
 };
+
+const EMPLOYMENT_TYPES = [
+    "تمام‌وقت", "پاره‌وقت", "قراردادی", "موقت", "داوطلبانه", "کارآموز", "سایر"
+];
 
 const getStatusClasses = status =>
     STATUS_INTENTS[status] || "bg-gray-100 text-gray-700 border-gray-200";
@@ -60,8 +68,16 @@ const formatPersianDate = dateValue => {
 
 const emptyFilterState = {
     title: "",
-    category: "",
-    city: "",
+    location: "",
+    job_categoriy: "",
+    employment_type: "",
+};
+
+const filterLabelMap = {
+    title: "عنوان",
+    location: "استان",
+    employment_type: "نوع همکاری",
+    job_categoriy: "دسته‌بندی",
 };
 
 const JobsSearch = () => {
@@ -71,9 +87,12 @@ const JobsSearch = () => {
 
     const [formFilters, setFormFilters] = useState(emptyFilterState);
     const [jobs, setJobs] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [hasSearched, setHasSearched] = useState(false);
+    // This flag is used to avoid fetching data on the first render
 
+    // sync filter state from url params -> only allowed keys
     const queryFilters = useMemo(() => {
         const nextFilters = { ...emptyFilterState };
         searchParams.forEach((value, key) => {
@@ -84,49 +103,92 @@ const JobsSearch = () => {
         return nextFilters;
     }, [searchParams]);
 
+    // Set document title once
     useEffect(() => {
         document.title = "جستجوی فرصت‌های شغلی | کاراینجا";
     }, []);
 
+    // Whenever url params change, sync form with the params
     useEffect(() => {
         setFormFilters(queryFilters);
     }, [queryFilters]);
 
-    useEffect(() => {
-        const controller = new AbortController();
-        const activeParams = Object.fromEntries(
-            Object.entries(queryFilters).filter(([, value]) => Boolean(value))
-        );
+    // Whenever formFilters are manually set (by form/badge), the user can click the search button to fire search.
+    // So don't do useEffect(fetch) on mount.
 
-        const fetchJobs = async () => {
-            setLoading(true);
-            setError("");
-            try {
-                const response = await axiosInstance.get("/job_postings/", {
-                    params: activeParams,
-                    signal: controller.signal,
-                });
-                const rawData = response?.data;
-                const list = Array.isArray(rawData)
-                    ? rawData
-                    : Array.isArray(rawData?.results)
-                        ? rawData.results
-                        : [];
-                setJobs(list);
-            } catch (err) {
-                if (err.name === "CanceledError") return;
-                setError("در دریافت نتایج جستجو خطایی رخ داد. لطفاً دوباره تلاش کنید.");
-                setJobs([]);
-            } finally {
-                setLoading(false);
+    const fetchJobs = async filterParams => {
+        setLoading(true);
+        setError("");
+        try {
+            const response = await axiosInstance.get("/job_postings/search/", {
+                params: {
+                    ...filterParams,
+                    operator: "and",
+                    offset: 0,
+                    limit: 100,
+                },
+            });
+            const rawData = response?.data;
+            const list = Array.isArray(rawData)
+                ? rawData
+                : Array.isArray(rawData?.results)
+                    ? rawData.results
+                    : [];
+            setJobs(list);
+        } catch (err) {
+            if (err.name === "CanceledError") return;
+            setError("در دریافت نتایج جستجو خطایی رخ داد. لطفاً دوباره تلاش کنید.");
+            setJobs([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Called ONLY by Search form submit
+    const handleSubmit = event => {
+        event.preventDefault();
+        const paramsObject = {};
+        Object.entries(formFilters).forEach(([key, value]) => {
+            if (value !== "") {
+                paramsObject[key] = value;
             }
-        };
+        });
+        setSearchParams(paramsObject);
+        // Run search
+        setHasSearched(true);
+        fetchJobs(paramsObject);
+    };
 
-        fetchJobs();
+    // On mount: do nothing (hasSearched=false). 
+    // Only allow search after search button
+    // When filters are reset/removed, clear jobs and params
+    const handleResetFilters = () => {
+        setFormFilters(emptyFilterState);
+        setSearchParams({});
+        setJobs([]);
+        setError("");
+        setHasSearched(false);
+    };
 
-        return () => controller.abort();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [queryFilters]);
+    // Remove a filter and re-run search if already has searched
+    const handleRemoveFilter = key => {
+        const nextFilters = { ...queryFilters };
+        delete nextFilters[key];
+        setFormFilters(prev => ({ ...prev, [key]: "" }));
+        setSearchParams(
+            Object.fromEntries(
+                Object.entries(nextFilters).filter(([, value]) => Boolean(value))
+            )
+        );
+        // If there was a previous search, do update jobs list, else just do nothing
+        if (hasSearched) {
+            fetchJobs(
+                Object.fromEntries(
+                    Object.entries(nextFilters).filter(([, value]) => Boolean(value))
+                )
+            );
+        }
+    };
 
     const handleInputChange = event => {
         const { name, value } = event.target;
@@ -137,43 +199,20 @@ const JobsSearch = () => {
         setFormFilters(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = event => {
-        event.preventDefault();
-        const paramsObject = {};
-        Object.entries(formFilters).forEach(([key, value]) => {
-            if (value) {
-                paramsObject[key] = value;
-            }
-        });
-        setSearchParams(paramsObject);
-    };
-
-    const handleResetFilters = () => {
-        setFormFilters(emptyFilterState);
-        setSearchParams({});
-    };
-
-    const handleRemoveFilter = key => {
-        const nextFilters = { ...queryFilters };
-        delete nextFilters[key];
-        setSearchParams(
-            Object.fromEntries(
-                Object.entries(nextFilters).filter(([, value]) => Boolean(value))
-            )
-        );
-    };
-
     const activeFilterEntries = useMemo(
-        () => Object.entries(queryFilters).filter(([, value]) => Boolean(value)),
+        () => Object.entries(queryFilters).filter(([, value]) => value !== ""),
         [queryFilters]
     );
 
     const renderFilterLabel = (key, value) => {
-        if (key === "category") {
+        if (key === "job_categoriy") {
             return JOB_CATEGORIES.find(cat => cat.value === value)?.label || value;
         }
-        if (key === "city") {
+        if (key === "location") {
             return IRAN_PROVINCES.find(city => city.value === value)?.label || value;
+        }
+        if (key === "employment_type") {
+            return value;
         }
         if (key === "title") {
             return `عنوان: ${value}`;
@@ -204,17 +243,12 @@ const JobsSearch = () => {
             </Card>
         ));
 
-    const badgeLabelForFilter = key => {
-        if (key === "title") return "عنوان";
-        if (key === "category") return "دسته";
-        if (key === "city") return "شهر";
-        return key;
-    };
+    const badgeLabelForFilter = key => filterLabelMap[key] || key;
 
     return (
         <>
             <Navbar />
-            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-28 pb-16">
+            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-10 lg:pt-28 pb-16">
                 <section className="container px-4 mx-auto space-y-8" dir="rtl">
                     <header className="bg-white/80 dark:bg-zinc-900 rounded-3xl border border-zinc-100 dark:border-white/10 shadow-sm p-6 backdrop-blur">
                         <div className="flex flex-col gap-2 mb-8">
@@ -227,7 +261,7 @@ const JobsSearch = () => {
                                 شرط‌های جدید اضافه یا همه را حذف کنید.
                             </p>
                         </div>
-
+                        {/* --- FILTER FORM --- */}
                         <form
                             onSubmit={handleSubmit}
                             className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
@@ -248,36 +282,14 @@ const JobsSearch = () => {
                                     />
                                 </div>
                             </div>
-
                             <div className="flex flex-col gap-2">
-                                <label className="text-xs text-muted-foreground">
-                                    گروه شغلی
-                                </label>
+                                <label className="text-xs text-muted-foreground">استان</label>
                                 <Select
-                                    value={formFilters.category}
-                                    onValueChange={value => handleSelectChange("category", value)}
+                                    value={formFilters.location}
+                                    onValueChange={value => handleSelectChange("location", value)}
                                 >
                                     <SelectTrigger className="justify-between">
-                                        <SelectValue placeholder="انتخاب گروه" />
-                                    </SelectTrigger>
-                                    <SelectContent className="rtl max-h-64">
-                                        {JOB_CATEGORIES.map(cat => (
-                                            <SelectItem value={cat.value} key={cat.value}>
-                                                {cat.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                                <label className="text-xs text-muted-foreground">شهر</label>
-                                <Select
-                                    value={formFilters.city}
-                                    onValueChange={value => handleSelectChange("city", value)}
-                                >
-                                    <SelectTrigger className="justify-between">
-                                        <SelectValue placeholder="همه شهرها" />
+                                        <SelectValue placeholder="همه استان‌ها" />
                                     </SelectTrigger>
                                     <SelectContent className="rtl max-h-72">
                                         {IRAN_PROVINCES.map(city => (
@@ -288,22 +300,85 @@ const JobsSearch = () => {
                                     </SelectContent>
                                 </Select>
                             </div>
-
-                            <div className="flex items-end gap-3">
-                                <Button type="submit" className="flex-1 h-11">
+                            <div className="flex flex-col gap-2">
+                                <label className="text-xs text-muted-foreground">
+                                    دسته‌بندی شغلی
+                                </label>
+                                <Select
+                                    value={formFilters.job_categoriy}
+                                    onValueChange={value => handleSelectChange("job_categoriy", value)}
+                                >
+                                    <SelectTrigger className="justify-between">
+                                        <SelectValue placeholder="انتخاب دسته‌بندی" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rtl max-h-64">
+                                        {JOB_CATEGORIES.map(cat => (
+                                            <SelectItem value={cat.value} key={cat.value}>
+                                                {cat.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <label className="text-xs text-muted-foreground">نوع همکاری</label>
+                                <Select
+                                    value={formFilters.employment_type}
+                                    onValueChange={value => handleSelectChange("employment_type", value)}
+                                >
+                                    <SelectTrigger className="justify-between">
+                                        <SelectValue placeholder="نوع همکاری" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rtl max-h-48">
+                                        {EMPLOYMENT_TYPES.map(type => (
+                                            <SelectItem value={type} key={type}>
+                                                {type}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center justify-start w-full gap-3">
+                                <Button type="submit" className="flex-1 h-11 flex items-center justify-center gap-2">
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="w-5 h-5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"
+                                        />
+                                    </svg>
                                     جستجوی مشاغل
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="ghost"
-                                    className="text-xs"
+                                    className="text-sm flex items-center gap-1 text-muted-foreground hover:text-red-500 transition"
                                     onClick={handleResetFilters}
                                 >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-4 w-4 mr-1"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M6.293 6.293a1 1 0 011.414 0L10 8.586l2.293-2.293a1 1 0 111.414 1.414L11.414 10l2.293 2.293a1 1 0 01-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 01-1.414-1.414L8.586 10 6.293 7.707a1 1 0 010-1.414z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
                                     حذف فیلترها
                                 </Button>
                             </div>
                         </form>
-
+                        {/* --- FILTER BADGES --- */}
                         {activeFilterEntries.length > 0 && (
                             <div className="flex flex-wrap gap-3 mt-6">
                                 {activeFilterEntries.map(([key, value]) => (
@@ -333,23 +408,24 @@ const JobsSearch = () => {
                     <section className="space-y-4">
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-muted-foreground mb-3 flex gap-x-2">
                                     نتایج یافت‌شده:
-                                    <span className="font-bold text-zinc-900 dark:text-white mr-2">
-                                        {loading ? "..." : jobs.length}
+                                    <span className="font-bold text-zinc-900 dark:text-white">
+                                        {/* Only after searching, show count. Otherwise, show nothing */}
+                                        {loading ? "..." : hasSearched ? jobs.length : "۰"}
                                     </span>
                                     آگهی شغلی
                                 </p>
-                                {activeFilterEntries.length > 0 && (
-                                    <p className="text-xs text-muted-foreground">
-                                        فیلترهای فعال:{" "}
+                                {/* {activeFilterEntries.length > 0 && (
+                                    <p className="text-sm text-muted-foreground">
+                                        فیلترهای فعال :  {" "}
                                         {activeFilterEntries
                                             .map(([key, value]) => renderFilterLabel(key, value))
                                             .join("، ")}
                                     </p>
-                                )}
+                                )} */}
                             </div>
-                            <Button
+                            {/* <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
@@ -357,17 +433,27 @@ const JobsSearch = () => {
                             >
                                 بازگشت به بالا
                                 <FiChevronLeft />
-                            </Button>
+                            </Button> */}
                         </div>
 
                         {error && (
-                            <div className="p-4 rounded-2xl border border-red-200 bg-red-50 text-red-600 text-sm">
+                            <div className="p-4 rounded-2xl border border-red-200 bg-red-50 text-red-600 dark:border-red-400 dark:bg-red-900/10 dark:text-red-200 text-sm">
                                 {error}
                             </div>
                         )}
 
                         {loading ? (
                             <div className="grid gap-4">{renderSkeletons()}</div>
+                        ) : !hasSearched ? (
+                            <Card className="border border-dashed">
+                                <CardContent className="py-12 text-center space-y-4">
+                                    <FiSearch className="w-8 h-8 mx-auto text-zinc-400" />
+                                    <p className="text-lg font-semibold">هنوز جستجویی انجام نشده است</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        فیلترها را وارد کنید و روی جستجو بزنید.
+                                    </p>
+                                </CardContent>
+                            </Card>
                         ) : jobs.length === 0 ? (
                             <Card className="border border-dashed">
                                 <CardContent className="py-12 text-center space-y-4">
@@ -508,4 +594,3 @@ const JobsSearch = () => {
 };
 
 export default JobsSearch;
-

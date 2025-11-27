@@ -5,12 +5,24 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
 import { DataTable } from "@/components/data-table";
 import { LuLoaderCircle } from "react-icons/lu";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import AuthContext from "@/context/authContext"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import AuthContext from "@/context/authContext";
 
 const statusOptions = [
     { value: "پیش نویس", label: "پیش نویس" },
@@ -21,7 +33,7 @@ const statusOptions = [
 const blogSchema = z.object({
     title: z.string().min(1, "عنوان الزامی است"),
     content: z.string().min(1, "متن الزامی است"),
-    status: z.enum(statusOptions.map(opt => opt.value)),
+    status: z.enum(statusOptions.map((opt) => opt.value)),
 });
 
 const Blogs = () => {
@@ -37,7 +49,7 @@ const Blogs = () => {
         views_count: 0,
         likes_count: 0,
         comments_count: 0,
-        published_at: new Date().toISOString().slice(0, 10),
+        published_at: new Intl.DateTimeFormat("fa-IR").format(new Date()),
         user_id: user.user_id,
     });
     const [errors, setErrors] = useState({});
@@ -47,6 +59,10 @@ const Blogs = () => {
     // Delete Dialog State
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+    // View Content Dialog
+    const [viewContentDialogOpen, setViewContentDialogOpen] = useState(false);
+    const [viewContentBlog, setViewContentBlog] = useState(null);
 
     const axiosInstance = useAxios();
 
@@ -64,7 +80,6 @@ const Blogs = () => {
         try {
             const res = await axiosInstance.get(`/users/?offset=0&limit=100`);
             setUsers(res.data);
-
         } catch (e) {
             toast.error("خطا در دریافت لیست کاربران");
         }
@@ -80,9 +95,13 @@ const Blogs = () => {
         const { name, value, type } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: (type === "number" || name === "views_count" || name === "likes_count" || name === "comments_count")
-                ? Number(value)
-                : value,
+            [name]:
+                type === "number" ||
+                name === "views_count" ||
+                name === "likes_count" ||
+                name === "comments_count"
+                    ? Number(value)
+                    : value,
         }));
     };
 
@@ -101,12 +120,16 @@ const Blogs = () => {
             blogSchema.parse(formData);
             let res;
             if (editingBlog) {
-                res = await axiosInstance.patch(`/blogs/${editingBlog.id}`, formData);
+                res = await axiosInstance.patch(
+                    `/blogs/${editingBlog.id}`,
+                    formData
+                );
                 toast.success("وبلاگ با موفقیت ویرایش شد");
             } else {
                 res = await axiosInstance.post(`/blogs`, formData);
                 toast.success("وبلاگ با موفقیت اضافه شد");
             }
+
             setFormData({
                 title: "",
                 content: "",
@@ -132,7 +155,6 @@ const Blogs = () => {
             }
 
             console.log(error);
-
         }
         setLoading(false);
     };
@@ -146,7 +168,7 @@ const Blogs = () => {
             views_count: blog.views_count,
             likes_count: blog.likes_count,
             comments_count: blog.comments_count,
-            published_at: new Date().toISOString().slice(0, 10),
+            published_at: new Intl.DateTimeFormat("fa-IR").format(new Date()),
             user_id: user.user_id || "",
         });
         setIsModalOpen(true);
@@ -177,20 +199,33 @@ const Blogs = () => {
         { key: "likes_count", label: "تعداد لایک" },
         { key: "comments_count", label: "کامنت‌ها" },
         { key: "published_at", label: "تاریخ انتشار" },
-        { key: "user", label: "کاربر" },
-        { key: "created_at", label: "ایجاد" },
-        { key: "updated_at", label: "ویرایش" },
+        { key: "user.full_name", label: "کاربر" },
+        {
+            key: "actions",
+            label: "محتوا",
+            render: (cellValue, row) => (
+                <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                        
+                        setViewContentBlog(row);
+                        setViewContentDialogOpen(true);
+                    }}
+                >
+                    مشاهده محتوا
+                </Button>
+            ),
+        },
     ];
-
-    const mappings = {
-        user: (_v, row) => row.user ? row.user.full_name : "",
-    };
 
     return (
         <div className="p-4 lg:p-6" dir="rtl">
             <Toaster className="dana" />
             <div className="flex justify-between items-center mb-4">
-                <h1 className="text-2xl font-semibold moraba">مدیریت وبلاگ‌ها</h1>
+                <h1 className="text-2xl font-semibold moraba">
+                    مدیریت وبلاگ‌ها
+                </h1>
                 <Button onClick={() => setIsModalOpen(true)}>افزودن وبلاگ</Button>
             </div>
             {loadingGetData ? (
@@ -201,7 +236,6 @@ const Blogs = () => {
                     data={data}
                     onEdit={handleEdit}
                     onDelete={handleDeleteClick}
-                    valueMappings={mappings}
                 />
             )}
 
@@ -209,7 +243,11 @@ const Blogs = () => {
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="sm:max-w-[500px]" dir="rtl">
                     <DialogHeader>
-                        <DialogTitle>{editingBlog ? "ویرایش وبلاگ" : "افزودن وبلاگ"}</DialogTitle>
+                        <DialogTitle>
+                            {editingBlog
+                                ? "ویرایش وبلاگ"
+                                : "افزودن وبلاگ"}
+                        </DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSubmit} className="grid gap-4 py-4">
                         <div className="grid gap-2">
@@ -221,7 +259,11 @@ const Blogs = () => {
                                 onChange={handleInputChange}
                                 className={errors.title ? "border-red-500" : ""}
                             />
-                            {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
+                            {errors.title && (
+                                <p className="text-red-500 text-sm">
+                                    {errors.title}
+                                </p>
+                            )}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="content">متن</Label>
@@ -233,98 +275,40 @@ const Blogs = () => {
                                 className={errors.content ? "border-red-500" : ""}
                                 rows={4}
                             />
-                            {errors.content && <p className="text-red-500 text-sm">{errors.content}</p>}
+                            {errors.content && (
+                                <p className="text-red-500 text-sm">
+                                    {errors.content}
+                                </p>
+                            )}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="status">وضعیت</Label>
                             <Select
                                 value={formData.status}
-                                onValueChange={(val) => handleSelectChange("status", val)}
+                                onValueChange={(val) =>
+                                    handleSelectChange("status", val)
+                                }
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="انتخاب وضعیت" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {statusOptions.map(opt => (
-                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    {statusOptions.map((opt) => (
+                                        <SelectItem
+                                            key={opt.value}
+                                            value={opt.value}
+                                        >
+                                            {opt.label}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+                            {errors.status && (
+                                <p className="text-red-500 text-sm">
+                                    {errors.status}
+                                </p>
+                            )}
                         </div>
-                        {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="user_id">کاربر</Label>
-                                <Select
-                                    value={formData.user_id}
-                                    onValueChange={(val) => handleSelectChange("user_id", val)}
-                                >
-                                    <SelectTrigger id="user_id">
-                                        <SelectValue placeholder="انتخاب کاربر" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {users.map(u => (
-                                            <SelectItem
-                                                key={u.id}
-                                                value={u.id}
-                                            >{u.full_name || u.username || u.email}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.user_id && <p className="text-red-500 text-sm">{errors.user_id}</p>}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="published_at">تاریخ انتشار</Label>
-                                <Input
-                                    id="published_at"
-                                    name="published_at"
-                                    value={formData.published_at || ""}
-                                    onChange={handleInputChange}
-                                    placeholder="YYYY-MM-DD"
-                                    className={errors.published_at ? "border-red-500" : ""}
-                                />
-                                {errors.published_at && <p className="text-red-500 text-sm">{errors.published_at}</p>}
-                            </div>
-                        </div> */}
-                        {/* <div className="grid grid-cols-3 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="views_count">بازدید</Label>
-                <Input
-                  id="views_count"
-                  name="views_count"
-                  type="number"
-                  value={formData.views_count}
-                  onChange={handleInputChange}
-                  className={errors.views_count ? "border-red-500" : ""}
-                />
-                {errors.views_count && <p className="text-red-500 text-sm">{errors.views_count}</p>}
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="likes_count">لایک</Label>
-                <Input
-                  id="likes_count"
-                  name="likes_count"
-                  type="number"
-                  value={formData.likes_count}
-                  onChange={handleInputChange}
-                  className={errors.likes_count ? "border-red-500" : ""}
-                />
-                {errors.likes_count && <p className="text-red-500 text-sm">{errors.likes_count}</p>}
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="comments_count">کامنت</Label>
-                <Input
-                  id="comments_count"
-                  name="comments_count"
-                  type="number"
-                  value={formData.comments_count}
-                  onChange={handleInputChange}
-                  className={errors.comments_count ? "border-red-500" : ""}
-                />
-                {errors.comments_count && <p className="text-red-500 text-sm">{errors.comments_count}</p>}
-              </div>
-            </div> */}
-
                         <DialogFooter>
                             <Button
                                 variant="outline"
@@ -348,18 +332,56 @@ const Blogs = () => {
                 </DialogContent>
             </Dialog>
 
+            <Dialog
+                open={viewContentDialogOpen}
+                onOpenChange={setViewContentDialogOpen}
+            >
+                <DialogContent className="sm:max-w-[600px]" dir="rtl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {viewContentBlog
+                                ? `محتوای «${viewContentBlog.title}»`
+                                : ""}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="py-5 whitespace-pre-line break-words overflow-x-auto max-h-[400px]">
+                        {viewContentBlog?.content}
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setViewContentDialogOpen(false)}
+                        >
+                            بستن
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Delete Dialog */}
-            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <Dialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+            >
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                         <DialogTitle>حذف وبلاگ</DialogTitle>
                     </DialogHeader>
-                    <p className="my-5">آیا مطمئن هستید که می‌خواهید این وبلاگ را حذف کنید؟</p>
+                    <p className="my-5">
+                        آیا مطمئن هستید که می‌خواهید این وبلاگ را حذف کنید؟
+                    </p>
                     <DialogFooter>
-                        <Button variant="outline" className="ml-2" onClick={() => setDeleteDialogOpen(false)}>
+                        <Button
+                            variant="outline"
+                            className="ml-2"
+                            onClick={() => setDeleteDialogOpen(false)}
+                        >
                             انصراف
                         </Button>
-                        <Button variant="destructive" onClick={handleConfirmDelete}>
+                        <Button
+                            variant="destructive"
+                            onClick={handleConfirmDelete}
+                        >
                             حذف
                         </Button>
                     </DialogFooter>

@@ -54,41 +54,43 @@ export function Navbar() {
                         <div className="hidden md:flex !mx-20 gap-6 text-sm">
                             <MenuItem setActive={setActive} active={active} item="فرصت‌های شغلی">
                                 <div className="flex flex-col space-y-3 text-sm text-right">
-                                    <HoveredLink href="/jobs/all">همه آگهی‌ها</HoveredLink>
-                                    <HoveredLink href="/jobs/remote">فرصت‌های دورکاری</HoveredLink>
-                                    <HoveredLink href="/jobs/internship">کارآموزی</HoveredLink>
+                                    <Link to="/jobs/all"><HoveredLink>همه آگهی‌ها</HoveredLink></Link>
+                                    <Link to="/jobs/remote"><HoveredLink>فرصت‌های دورکاری</HoveredLink></Link>
+                                    <Link to="/jobs/internship"><HoveredLink>کارآموزی</HoveredLink></Link>
                                 </div>
                             </MenuItem>
 
                             <MenuItem setActive={setActive} active={active} item="رزومه‌ساز">
                                 <div className="flex flex-col space-y-3 text-sm text-right">
-                                    <HoveredLink href="/resume-builder">ساخت رزومه جدید</HoveredLink>
-                                    <HoveredLink href="/resumes">رزومه‌های من</HoveredLink>
+                                    <Link to="/resume-builder"><HoveredLink>ساخت رزومه جدید</HoveredLink></Link>
+                                    <Link to="/resumes"><HoveredLink>رزومه‌های من</HoveredLink></Link>
                                 </div>
                             </MenuItem>
 
                             <MenuItem setActive={setActive} active={active} item="برای کارفرماها">
                                 <div className="grid grid-cols-2 gap-4 text-sm p-2 text-right">
-                                    <ProductItem
-                                        title="ثبت آگهی"
-                                        href="/employer/post-job"
-                                        src="https://cdn.jobvision.ir/images/icons/post-job.png"
-                                        description="آگهی شغلی خود را منتشر کنید"
-                                    />
-                                    <ProductItem
-                                        title="داشبورد کارفرما"
-                                        href="/employer/dashboard"
-                                        src="https://cdn.jobvision.ir/images/icons/employer-dashboard.png"
-                                        description="مدیریت رزومه‌ها و آگهی‌ها"
-                                    />
+                                    <Link to="/employer/post-job">
+                                        <ProductItem
+                                            title="ثبت آگهی"
+                                            src="https://cdn.jobvision.ir/images/icons/post-job.png"
+                                            description="آگهی شغلی خود را منتشر کنید"
+                                        />
+                                    </Link>
+                                    <Link to="/employer/dashboard">
+                                        <ProductItem
+                                            title="داشبورد کارفرما"
+                                            src="https://cdn.jobvision.ir/images/icons/employer-dashboard.png"
+                                            description="مدیریت رزومه‌ها و آگهی‌ها"
+                                        />
+                                    </Link>
                                 </div>
                             </MenuItem>
 
                             <MenuItem setActive={setActive} active={active} item="راهنما">
                                 <div className="flex flex-col space-y-3 text-sm text-right">
-                                    <HoveredLink href="/help">راهنمای سایت</HoveredLink>
-                                    <HoveredLink href="/faq">سوالات متداول</HoveredLink>
-                                    <HoveredLink href="/contact">تماس با ما</HoveredLink>
+                                    <Link to="/help"><HoveredLink>راهنمای سایت</HoveredLink></Link>
+                                    <Link to="/faq"><HoveredLink>سوالات متداول</HoveredLink></Link>
+                                    <Link to="/contact"><HoveredLink>تماس با ما</HoveredLink></Link>
                                 </div>
                             </MenuItem>
                         </div>

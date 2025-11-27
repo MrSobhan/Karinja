@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback , useContext } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
 import {
     FiMapPin,
     FiBriefcase,
@@ -16,8 +23,10 @@ import {
     FiHeart,
     FiBookmark,
     FiCheck,
+    FiAlertTriangle
 } from "react-icons/fi";
 import { MdOutlineWorkOutline, MdOutlineDescription } from "react-icons/md";
+import { SiCountingworkspro } from "react-icons/si";
 import { CiMoneyBill } from "react-icons/ci";
 import { MdOutlineMapsHomeWork } from "react-icons/md";
 
@@ -25,7 +34,7 @@ import { HiOutlineLocationMarker } from "react-icons/hi";
 import useAxios from "@/hooks/useAxios";
 import AuthContext from "@/context/authContext";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast , Toaster } from "sonner";
 
 // Simple modal implementation (replace with a true modal lib if needed)
 function SimpleModal({ open, onClose, children }) {
@@ -42,6 +51,33 @@ function SimpleModal({ open, onClose, children }) {
                 </button>
                 {children}
             </div>
+        </div>
+    );
+}
+
+// Accordion component for about the company section
+function SimpleAccordion({ title, children }) {
+    const [open, setOpen] = useState(false);
+    return (
+        <div className="border border-zinc-200/60 dark:border-white/10 rounded-lg">
+            <button
+                type="button"
+                className="w-full flex justify-between items-center px-4 py-3 font-semibold dark:text-white text-zinc-800 text-right focus:outline-none"
+                onClick={() => setOpen(o => !o)}
+                aria-expanded={open}
+            >
+                <span>{title}</span>
+                <svg
+                    className={cn("w-5 h-5 transition-transform duration-150", open ? "rotate-180" : "")}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                >
+                    <path d="M7 10l5 5 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+            </button>
+            {open && (
+                <div className="p-4 border-t border-zinc-200/60 dark:border-white/10 mt-0">{children}</div>
+            )}
         </div>
     );
 }
@@ -82,6 +118,16 @@ const formatPersianDate = dateValue => {
     }
 };
 
+// Options for the violation report
+const REPORT_OPTIONS = [
+    "موقعیت شغلی بسته شده و نیروی مورد نظر را جذب کرده است",
+    "جعلی بودن",
+    "کلاهبرداری، نقض قانون یا وقوع جرم",
+    "دسته بندی اشتباه",
+    "محتوای اشتباه",
+    "محتوای توهین آمیز",
+    "سایر",
+];
 
 export default function JobDetail() {
     const { id } = useParams();
@@ -102,7 +148,18 @@ export default function JobDetail() {
     const [selectedResume, setSelectedResume] = useState(null);
     const [coverLetter, setCoverLetter] = useState("");
     const [applicationSent, setApplicationSent] = useState(false);
-    
+
+    // Similar jobs
+    const [relatedJobs, setRelatedJobs] = useState([]);
+    const [relatedLoading, setRelatedLoading] = useState(true);
+
+    // Report modal
+    const [reportModal, setReportModal] = useState(false);
+    const [reportOption, setReportOption] = useState("");
+    const [reportDesc, setReportDesc] = useState("");
+    const [reportTouched, setReportTouched] = useState(false);
+    const [reportSubmit, setReportSubmit] = useState(false);
+
     const { user } = useContext(AuthContext);
 
     useEffect(() => {
@@ -120,8 +177,6 @@ export default function JobDetail() {
             try {
                 const response = await axiosInstance.get(`/job_postings/${id}`);
                 if (!cancelled) setJob(response.data);
-                console.log(response);
-                
             } catch (err) {
                 if (!cancelled) {
                     if (err.response?.status === 404) {
@@ -129,7 +184,6 @@ export default function JobDetail() {
                     } else {
                         setError("خطا در دریافت اطلاعات آگهی شغلی. لطفاً دوباره تلاش کنید.");
                     }
-                    console.error("Job fetch error:", err);
                 }
             } finally {
                 if (!cancelled) setLoading(false);
@@ -137,6 +191,29 @@ export default function JobDetail() {
         })();
         return () => { cancelled = true; };
     }, [id]);
+
+    // Fetch related jobs
+    useEffect(() => {
+        let cancelled = false;
+        setRelatedLoading(true);
+        setRelatedJobs([]);
+        if (!job) return;
+
+        axiosInstance.get(`/job_postings/search/?job_categoriy=${job.job_categoriy}&operator=and&offset=0&limit=100`)
+            .then(res => {
+                if (!cancelled && Array.isArray(res.data)) setRelatedJobs(res.data.slice(0, 10));
+            })
+            .catch((err) => {
+                if (!cancelled) setRelatedJobs([]);
+                console.log(err);
+
+            })
+            .finally(() => {
+                if (!cancelled) setRelatedLoading(false);
+
+            });
+        return () => { cancelled = true; };
+    }, [job, id]);
 
     useEffect(() => {
         if (!job || !id || !user) {
@@ -260,6 +337,26 @@ export default function JobDetail() {
         }
     };
 
+    // Violation report
+    const handleOpenReportModal = () => {
+        setReportOption("");
+        setReportDesc("");
+        setReportTouched(false);
+        setReportSubmit(false);
+        setReportModal(true);
+    };
+    const handleReportSubmit = e => {
+        e.preventDefault();
+        setReportTouched(true);
+        if (!reportOption || !reportDesc.trim()) return;
+        setReportSubmit(true);
+        setTimeout(() => {
+            setReportModal(false);
+            setReportSubmit(false);
+            toast.success("گزارش شما دریافت شد. با سپاس از همکاری شما.");
+        }, 900); // Fake submit delay
+    };
+
     if (loading) {
         return (
             <>
@@ -317,15 +414,27 @@ export default function JobDetail() {
     return (
         <>
             <Navbar />
-            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-28 pb-16" dir="rtl">
+            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-12 lg:pt-28" dir="rtl">
+            <Toaster className="dana"/> 
                 <div className="container px-4 mx-auto max-w-5xl space-y-6">
                     {/* Header Section */}
                     <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                         <CardHeader className="space-y-4">
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-start justify-between gap-4">
+                                    <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-200/20 flex items-center justify-center mr-2">
+                                        {company.logo ? (
+                                            <img
+                                                src={company.logo}
+                                                alt={company.full_name || "لوگوی شرکت"}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-zinc-900 dark:text-zinc-100 text-3xl select-none mb-1"><SiCountingworkspro /></span>
+                                        )}
+                                    </div>
                                     <div className="flex-1">
-                                        <CardTitle className="text-2xl md:text-3xl font-bold mb-2">
+                                        <CardTitle className="text-2xl md:text-3xl font-bold mb-2 moraba">
                                             {job.title}
                                         </CardTitle>
                                         <div className="flex items-center gap-2 text-muted-foreground">
@@ -334,8 +443,43 @@ export default function JobDetail() {
                                                 {company.full_name || "بدون نام شرکت"}
                                             </span>
                                         </div>
+                                        <div className="flex mt-5 gap-x-2 !min-w-max ">
+                                            {/* Badges */}
+                                            {job.status && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        getStatusClasses(job.status),
+                                                        "border",
+                                                        "dark:bg-zinc-900 dark:text-emerald-300 dark:border-emerald-700"
+                                                    )}
+                                                >
+                                                    {job.status}
+                                                </Badge>
+                                            )}
+                                            {job.employment_type && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        getJobTypeClasses(job.employment_type),
+                                                        "border",
+                                                        "dark:bg-zinc-900 dark:text-blue-300 dark:border-blue-700"
+                                                    )}
+                                                >
+                                                    {job.employment_type}
+                                                </Badge>
+                                            )}
+                                            {job.job_categoriy && (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="dark:bg-zinc-800 dark:text-zinc-200"
+                                                >
+                                                    {job.job_categoriy}
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex flex-wrap gap-2 justify-end items-center">
+                                    <div className="flex flex-wrap gap-2 justify-end items-center -mr-4">
                                         <button
                                             className={cn(
                                                 "flex items-center px-2 py-1 rounded-lg border transition focus:ring-2 focus:ring-rose-400 gap-1 text-xs font-medium",
@@ -358,39 +502,44 @@ export default function JobDetail() {
                                             />
                                             {liked ? "ذخیره شده" : "ذخیره"}
                                         </button>
-                                        {/* Badges */}
-                                        {job.status && (
-                                            <Badge
-                                                variant="outline"
-                                                className={cn(
-                                                    getStatusClasses(job.status),
-                                                    "border",
-                                                    "dark:bg-zinc-900 dark:text-emerald-300 dark:border-emerald-700"
-                                                )}
-                                            >
-                                                {job.status}
-                                            </Badge>
+                                    <button
+                                        className={cn(
+                                            "flex items-center px-2 py-1 rounded-lg border transition focus:ring-2 focus:ring-blue-400 gap-1 text-xs font-medium",
+                                            "bg-blue-50 border-blue-200 text-blue-600 dark:bg-transparent dark:text-blue-400 dark:border-blue-800"
                                         )}
-                                        {job.employment_type && (
-                                            <Badge
-                                                variant="outline"
-                                                className={cn(
-                                                    getJobTypeClasses(job.employment_type),
-                                                    "border",
-                                                    "dark:bg-zinc-900 dark:text-blue-300 dark:border-blue-700"
-                                                )}
-                                            >
-                                                {job.employment_type}
-                                            </Badge>
-                                        )}
-                                        {job.job_categoriy && (
-                                            <Badge
-                                                variant="secondary"
-                                                className="dark:bg-zinc-800 dark:text-zinc-200"
-                                            >
-                                                {job.job_categoriy}
-                                            </Badge>
-                                        )}
+                                        aria-label="اشتراک‌گذاری موقعیت شغلی"
+                                        title="اشتراک‌گذاری موقعیت شغلی"
+                                        type="button"
+                                        onClick={() => {
+                                            const url = window.location.href;
+                                            if (navigator.clipboard) {
+                                                navigator.clipboard.writeText(url)
+                                                    .then(() => {
+                                                        toast.success("لینک اشتراک‌گذاری در کلیپ‌بورد کپی شد!");
+                                                    })
+                                                    .catch(() => {
+                                                        toast.error("کپی لینک با خطا مواجه شد!");
+                                                    });
+                                            } else {
+                                                // fallback for very old browsers
+                                                const textarea = document.createElement('textarea');
+                                                textarea.value = url;
+                                                document.body.appendChild(textarea);
+                                                textarea.select();
+                                                try {
+                                                    document.execCommand('copy');
+                                                    toast.success("لینک اشتراک‌گذاری در کلیپ‌بورد کپی شد!");
+                                                } catch {
+                                                    toast.error("کپی لینک با خطا مواجه شد!");
+                                                }
+                                                document.body.removeChild(textarea);
+                                            }
+                                        }}
+                                    >
+                                        <FiGlobe className="text-md" />
+                                        اشتراک‌گذاری
+                                    </button>
+
                                     </div>
                                 </div>
                             </div>
@@ -470,22 +619,148 @@ export default function JobDetail() {
                                                 </div>
                                             </div>
                                         )}
+                                        {company && (company.full_name || company.summary || company.industry) && (
+                                <div className="mt-4">
+                                    <SimpleAccordion title="درباره شرکت">
+                                        <div className="space-y-2">
+                                            {company.full_name && (
+                                                <div>
+                                                    <span className="font-semibold">نام شرکت: </span>
+                                                    {company.full_name}
+                                                </div>
+                                            )}
+                                            {company.industry && (
+                                                <div>
+                                                    <span className="font-semibold">صنعت: </span>
+                                                    {company.industry}
+                                                </div>
+                                            )}
+                                            {company.summary && (
+                                                <div>
+                                                    <span className="font-semibold">توضیحات: </span>
+                                                    <p className="text-sm text-zinc-700 dark:text-zinc-300">{company.summary}</p>
+                                                </div>
+                                            )}
+                                            {company.address && (
+                                                <div>
+                                                    <span className="font-semibold">آدرس شرکت: </span>
+                                                    <span>{company.address}</span>
+                                                </div>
+                                            )}
+                                            {company.phone && (
+                                                <div>
+                                                    <span className="font-semibold">تلفن تماس: </span>
+                                                    <span>{company.phone}</span>
+                                                </div>
+                                            )}
+                                            {company.website_address && (
+                                                <div>
+                                                    <span className="font-semibold">وبسایت: </span>
+                                                    <a
+                                                        className="text-blue-600 underline"
+                                                        href={(company.website_address || "").startsWith('http')
+                                                            ? company.website_address
+                                                            : `https://${company.website_address}`
+                                                        }
+                                                        target="_blank" rel="noopener noreferrer"
+                                                    >
+                                                        {company.website_address}
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </SimpleAccordion>
+                                </div>
+                            )}
                                     </CardContent>
                                 </Card>
                             )}
+
+                            <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
+                                <CardHeader>
+                                    <CardTitle>
+                                        <span className="flex items-center gap-2 text-lg">
+                                            <FiBriefcase className="text-xl" />
+                                            آگهی‌های مشابه
+                                        </span>
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    {relatedLoading ? (
+                                        <div className="space-y-2">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Skeleton key={i} className="h-8 w-full" />
+                                            ))}
+                                        </div>
+                                    ) : relatedJobs.length > 0 ? (
+                                        <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                            {relatedJobs.map(rjob => (
+                                                <li
+                                                    key={rjob.id}
+                                                    className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 bg-zinc-50 dark:bg-zinc-900/60 transition rounded-xl px-6 cursor-pointer"
+                                                    onClick={() => navigate(`/job/${rjob.id}`)}
+                                                    tabIndex={0}
+                                                    role="button"
+                                                >
+                                                    <div className="flex flex-col gap-1">
+                                                        <strong className="text-sm font-semibold line-clamp-1">{rjob.title}</strong>
+                                                        <span className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                                                            {rjob.company?.full_name || "-"}
+                                                        </span>
+                                                    </div>
+                                                    <span className="flex flex-row items-center gap-2 mt-1 sm:mt-0">
+                                                        {rjob.location && (
+                                                            <span
+                                                                className="hidden sm:inline text-xs text-zinc-500 dark:text-zinc-400"
+                                                            >
+                                                                <FiMapPin className="inline ml-1" />
+                                                                {rjob.location}
+                                                            </span>
+                                                        )}
+                                                        {rjob.employment_type && (
+                                                            <Badge size="sm" className={cn("dark:bg-zinc-900 border-none py-1", getJobTypeClasses(rjob.employment_type))}>
+                                                                {rjob.employment_type}
+                                                            </Badge>
+                                                        )}
+                                                    </span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <div className="text-xs text-zinc-500">آگهی مشابهی یافت نشد.</div>
+                                    )}
+                                </CardContent>
+                            </Card>
+
+                            <div className="mt-4">
+                                <Card className="border border-red-200 bg-red-50 dark:border-rose-800 dark:bg-rose-950/30">
+                                    <CardContent
+                                        className="py-3 px-4 flex items-center gap-3 cursor-pointer select-none"
+                                        onClick={handleOpenReportModal}
+                                        tabIndex={0}
+                                        role="button"
+                                    >
+                                        <FiAlertTriangle className="text-rose-600 text-2xl" />
+                                        <span className="text-sm font-bold text-rose-600">
+                                            گزارش تخلف این آگهی
+                                        </span>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            
                         </div>
 
                         {/* Sidebar - Company Info & Actions */}
-                        <div className="space-y-6">
+                        <div className="space-y-6 sticky top-28 left-1 max-h-min">
                             {/* Company Card */}
                             {company.id && (
                                 <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                                     <CardHeader>
                                         <CardTitle>اطلاعات شرکت</CardTitle>
-                                        
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                    <hr />
+                                        <hr />
                                         <div>
                                             <div className="font-bold text-xl mb-2">{company.full_name}</div>
                                             {company.industry && (
@@ -560,7 +835,7 @@ export default function JobDetail() {
                                     onClick={() => navigate("/jobs/search")}
                                 >
                                     <FiArrowRight className="mr-2" />
-                                     لیست آگهی‌ها
+                                    لیست آگهی‌ها
                                 </Button>
                             </div>
                         </div>
@@ -569,85 +844,166 @@ export default function JobDetail() {
             </main>
             <Footer />
 
-            {/* رزومه مدال */}
-            <SimpleModal open={resumeModal} onClose={() => setResumeModal(false)}>
-                <form onSubmit={handleSubmitResume}>
-                    <div className="mb-4">
-                        <h2 className="font-semibold text-lg mb-3 flex items-center gap-2">انتخاب رزومه جهت ارسال</h2>
-                        {resumeLoading ? (
-                            <div className="text-center py-4">
-                                <Skeleton className="h-8 w-full mb-3" />
-                                <Skeleton className="h-14 w-full" />
-                            </div>
-                        ) : userResumes.length ? (
-                            <div className="space-y-3 max-h-44 overflow-y-auto">
-                                {userResumes.map(resume => (
-                                    <label
-                                        key={resume.id}
-                                        className={cn(
-                                            "block cursor-pointer border rounded-md px-3 py-2 bg-zinc-50 dark:bg-zinc-800",
-                                            selectedResume === resume.id ? "ring-2 ring-primary border-primary" : ""
-                                        )}
-                                    >
+            <Dialog open={resumeModal} onOpenChange={setResumeModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>انتخاب رزومه جهت ارسال</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmitResume}>
+                        <div className="mb-4">
+                            {resumeLoading ? (
+                                <div className="text-center py-4">
+                                    <Skeleton className="h-8 w-full mb-3" />
+                                    <Skeleton className="h-14 w-full" />
+                                </div>
+                            ) : userResumes.length ? (
+                                <div className="space-y-3 max-h-44 overflow-y-auto">
+                                    {userResumes.map(resume => (
+                                        <label
+                                            key={resume.id}
+                                            className={cn(
+                                                "block cursor-pointer border rounded-md px-3 py-2 bg-zinc-50 dark:bg-zinc-800",
+                                                selectedResume === resume.id ? "ring-2 ring-primary border-primary" : ""
+                                            )}
+                                        >
+                                            <input
+                                                className="mr-2"
+                                                type="radio"
+                                                name="resume"
+                                                value={resume.id}
+                                                checked={selectedResume === resume.id}
+                                                onChange={() => setSelectedResume(resume.id)}
+                                                required
+                                                tabIndex={0}
+                                            />
+                                            <span className="font-semibold">{resume.title || "رزومه بدون عنوان"}</span>
+                                            {resume.summary && (
+                                                <p className="text-xs text-zinc-500 mt-1">{resume.summary.slice(0, 40)}...</p>
+                                            )}
+                                        </label>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-zinc-600 text-sm py-3">شما هیچ رزومه‌ای ثبت نکرده‌اید.</div>
+                            )}
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="cover-letter" className="block mb-1 font-medium text-sm">
+                                توضیحات  (اختیاری)
+                            </label>
+                            <textarea
+                                id="cover-letter"
+                                name="cover-letter"
+                                className="w-full border border-zinc-200/20 mt-4 rounded p-2 text-sm resize-y h-20 bg-transparent"
+                                placeholder="اگر لازم است توضیحی اضافه بنویسید..."
+                                value={coverLetter}
+                                onChange={e => setCoverLetter(e.target.value)}
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => setResumeModal(false)}
+                                disabled={resumeSubmitLoading}
+                            >
+                                انصراف
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={
+                                    resumeLoading ||
+                                    !selectedResume ||
+                                    resumeSubmitLoading ||
+                                    !userResumes.length
+                                }
+                                className="flex-1"
+                            >
+                                {resumeSubmitLoading ? "در حال ارسال..." : "ارسال رزومه"}
+                            </Button>
+
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal for violation report */}
+            <Dialog open={reportModal} onOpenChange={setReportModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle >
+                            گزارش تخلف
+                        </DialogTitle>
+                        <DialogDescription>
+                            <p className="text-sm text-zinc-700 dark:text-zinc-200 mb-2 text-right mt-4">
+                                چرا این آگهی مشکل دارد؟
+                                <br />
+                                یکی از گزینه‌های زیر را انتخاب کنید. توضیحات شما به ما کمک می‌کند بهتر مشکل گزارش شده را بررسی کنیم.
+                            </p>
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleReportSubmit} className="space-y-4">
+                        <div>
+                            <div className="space-y-1">
+                                {REPORT_OPTIONS.map(opt => (
+                                    <label key={opt} className="flex items-center gap-2 cursor-pointer">
                                         <input
-                                            className="mr-2"
                                             type="radio"
-                                            name="resume"
-                                            value={resume.id}
-                                            checked={selectedResume === resume.id}
-                                            onChange={() => setSelectedResume(resume.id)}
-                                            required
-                                            tabIndex={0}
+                                            className="accent-red-600"
+                                            name="report-reason"
+                                            value={opt}
+                                            checked={reportOption === opt}
+                                            onChange={() => setReportOption(opt)}
                                         />
-                                        <span className="font-semibold">{resume.title || "رزومه بدون عنوان"}</span>
-                                        {resume.summary && (
-                                            <p className="text-xs text-zinc-500 mt-1">{resume.summary.slice(0, 40)}...</p>
-                                        )}
+                                        <span className="text-sm">{opt}</span>
                                     </label>
                                 ))}
                             </div>
-                        ) : (
-                            <div className="text-zinc-600 text-sm py-3">شما هیچ رزومه‌ای ثبت نکرده‌اید.</div>
-                        )}
-                    </div>
-                    <div className="mb-4">
-                        <label htmlFor="cover-letter" className="block mb-1 font-medium text-sm">
-                            نامه همراه (اختیاری)
-                        </label>
-                        <textarea
-                            id="cover-letter"
-                            name="cover-letter"
-                            className="w-full border border-zinc-200 rounded p-2 text-sm resize-y h-20"
-                            placeholder="اگر لازم است توضیحی اضافه بنویسید..."
-                            value={coverLetter}
-                            onChange={e => setCoverLetter(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            type="submit"
-                            disabled={
-                                resumeLoading ||
-                                !selectedResume ||
-                                resumeSubmitLoading ||
-                                !userResumes.length
-                            }
-                            className="flex-1"
-                        >
-                            {resumeSubmitLoading ? "در حال ارسال..." : "ارسال رزومه"}
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => setResumeModal(false)}
-                            disabled={resumeSubmitLoading}
-                        >
-                            انصراف
-                        </Button>
-                    </div>
-                </form>
-            </SimpleModal>
+                            {reportTouched && !reportOption && (
+                                <div className="text-xs text-rose-500 pt-1">لطفاً یک گزینه را انتخاب کنید</div>
+                            )}
+                        </div>
+                        <div>
+                            <label htmlFor="report-desc" className="block mb-1 font-medium text-sm">
+                                توضیحات بیشتر <span className="text-rose-600">(اجباری)</span>
+                            </label>
+                            <textarea
+                                id="report-desc"
+                                name="report-desc"
+                                required
+                                minLength={10}
+                                className="w-full border border-zinc-200/20 mt-4 rounded p-2 text-sm resize-y h-20 bg-transparent"
+                                placeholder="لطفاً بیشتر توضیح دهید..."
+                                value={reportDesc}
+                                onChange={e => setReportDesc(e.target.value)}
+                            />
+                            {reportTouched && !reportDesc.trim() && (
+                                <div className="text-xs text-rose-500 pt-1">وارد کردن توضیحات الزامی است</div>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => setReportModal(false)}
+                                disabled={reportSubmit}
+                            >
+                                انصراف
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={reportSubmit}
+                                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
+                            >
+                                {reportSubmit ? "در حال ارسال..." : "ارسال گزارش"}
+                            </Button>
+
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
