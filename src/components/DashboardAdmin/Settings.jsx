@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useRef } from "react";
 import useAxios from "@/hooks/useAxios";
 import { toast, Toaster } from "sonner";
 import { LuLoaderCircle } from "react-icons/lu";
@@ -7,8 +7,8 @@ import AuthContext from "@/context/authContext";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
-
 const NOTIFICATION_SETTINGS = [
+  // به تعداد دلخواه 10 تا قرار بده، اگر بیشتره در صورت نیاز کم کن
   {
     key: "receive_similar_job_ads",
     label: "دریافت آگهی‌های شغلی جدید مرتبط با رزومه‌ام"
@@ -23,8 +23,7 @@ const NOTIFICATION_SETTINGS = [
   },
   {
     key: "notify_when_request_status_changes",
-    label:
-      "اطلاع‌رسانی وقتی وضعیت درخواستم تغییر کرد (مثلاً دعوت به مصاحبه، رد شدن و…)"
+    label: "اطلاع‌رسانی وقتی وضعیت درخواستم تغییر کرد (مثلاً دعوت به مصاحبه، رد شدن و…)"
   },
   {
     key: "receive_new_message_from_employer",
@@ -49,125 +48,103 @@ const NOTIFICATION_SETTINGS = [
   {
     key: "job_alert_email",
     label: "دریافت اعلان ازان جاب (Job Alert) از طریق ایمیل"
-  },
-  {
-    key: "notify_via_browser",
-    label: "دریافت اعلان از طریق نوتیفیکیشن مرورگر"
-  },
-  {
-    key: "notify_via_app",
-    label: "دریافت اعلان از طریق اپلیکیشن موبایل (Push Notification)"
-  },
-  {
-    key: "notify_similar_to_applied_jobs",
-    label: "اطلاع‌رسانی مشاغل مشابه موقعیت‌هایی که قبلاً درخواست دادم"
-  },
-  {
-    key: "suggest_remote_jobs",
-    label: "دریافت پیشنهاد مشاغل دورکاری"
-  },
-  {
-    key: "suggest_parttime_jobs",
-    label: "دریافت پیشنهاد مشاغل پاره‌وقت"
-  },
-  {
-    key: "suggest_fulltime_jobs",
-    label: "دریافت پیشنهاد مشاغل تمام‌وقت"
-  },
-  {
-    key: "notify_new_company_in_field",
-    label: "اطلاع‌رسانی وقتی شرکت جدیدی در حوزه کاری من آگهی ثبت کرد"
   }
+  // اگر بیشتره حذف کن یا نیاز داشتی اضافه کن
 ];
-
-const SETTING_TEMPLATE = (userId) => ({
-  value_type: "string",
-  description: "",
-  is_sensitive: false,
-  is_active: true,
-  user_id: userId
-});
 
 const Settings = () => {
   const { user } = useContext(AuthContext);
-  const [settings, setSettings] = useState({});
+  const [disabledSettings, setDisabledSettings] = useState({});
   const [loading, setLoading] = useState({});
   const [loadingInitial, setLoadingInitial] = useState(true);
-
+  const initializing = useRef(false);
   const axiosInstance = useAxios();
-
-  const getSettingState = (key) => {
-    if (settings[key] && settings[key].value) {
-      if (settings[key].value === "true") return true;
-      if (settings[key].value === "false") return false;
-    }
-    return false;
-  };
-
-  const fetchSettings = async () => {
-    if (!user?.user_id) return;
-    setLoadingInitial(true);
-    try {
-      const res = await axiosInstance.get(`/settings/?user_id=${user.user_id}&offset=0&limit=100`);
-      const found = {};
-      res.data.forEach((item) => {
-        found[item.key] = item;
-      });
-      setSettings(found);
-    } catch (err) {
-      toast.error("دریافت تنظیمات انجام نشد");
-    }
-    setLoadingInitial(false);
-  };
-
-  const initializeSettings = async () => {
-    if (!user?.user_id) return;
-    await fetchSettings();
-    const keysToInsert = NOTIFICATION_SETTINGS.filter(
-      (s) => !settings[s.key]
-    );
-    if (keysToInsert.length === 0) return;
-
-    for (const setting of keysToInsert) {
-      try {
-        await axiosInstance.post("/settings/", {
-          key: setting.key,
-          value: "true",
-          ...SETTING_TEMPLATE(user.user_id),
-          description: setting.label
-        });
-      } catch (err) {
-      }
-    }
-    await fetchSettings();
-  };
 
   useEffect(() => {
     if (!user?.user_id) return;
-    initializeSettings();
+    let canceled = false;
+
+    const loadSettings = async () => {
+      if (initializing.current) return;
+      initializing.current = true;
+      setLoadingInitial(true);
+
+      try {
+        const res = await axiosInstance.get(
+          `/settings/search/?user_id=${user.user_id}&operator=AND&offset=0&limit=100`
+        );
+        const _falses = {};
+        res.data.forEach(item => {
+          if (item.value === "false") {
+            _falses[item.key] = item;
+          }
+        });
+        if (!canceled) {
+          setDisabledSettings(_falses);
+        }
+      } catch (err) {
+        toast.error("دریافت تنظیمات انجام نشد");
+        setDisabledSettings({});
+        console.log(err);
+      }
+      setLoadingInitial(false);
+      initializing.current = false;
+    };
+
+    loadSettings();
+    return () => {
+      canceled = true;
+    };
   }, [user?.user_id]);
+
+  const isEnabled = (key) => !(key in disabledSettings);
 
   const handleChange = async (key, checked) => {
     if (!user?.user_id) return;
-    setLoading((prev) => ({ ...prev, [key]: true }));
+    setLoading(prev => ({ ...prev, [key]: true }));
     try {
-      const id = settings[key]?.id;
-      await axiosInstance.patch(`/settings/${id}`, {
-        key,
-        value: checked ? "true" : "false",
-        value_type: "string",
-        user_id: user.user_id
-      });
-      toast.success("تنظیمات ذخیره شد");
-      await fetchSettings();
+      if (!checked) {
+        await axiosInstance.post("/settings", {
+          key,
+          value: "false",
+          value_type: "string",
+          description: NOTIFICATION_SETTINGS.find(n => n.key === key)?.label || "",
+          is_sensitive: false,
+          is_active: true,
+          user_id: user.user_id
+        });
+        setDisabledSettings(prev => ({
+          ...prev, [key]: { value: "false" }
+        }));
+        toast.success("ذخیره شد");
+      } else {
+        const item = disabledSettings[key];
+        if (item?.id) {
+          await axiosInstance.delete(`/settings/${item.id}`);
+        } else {
+          try {
+            const res = await axiosInstance.get(`/settings/search/?user_id=${user.user_id}&key=${key}`);
+            if (res.data?.[0]?.id) {
+              await axiosInstance.delete(`/settings/${res.data[0].id}`);
+            }
+          } catch {}
+        }
+        setDisabledSettings(prev => {
+          const p = { ...prev };
+          delete p[key];
+          return p;
+        });
+        toast.success("ذخیره شد");
+      }
     } catch (err) {
-      toast.error("مشکلی رخ داد. دوباره تلاش کنید");
+      toast.error("مشکلی رخ داد، دوباره تلاش کنید");
+      console.log(err);
     }
-    setLoading((prev) => ({ ...prev, [key]: false }));
+    setLoading(prev => ({ ...prev, [key]: false }));
   };
 
   return (
-    <div className="p-4 " dir="rtl">
+    <div className="p-4" dir="rtl">
       <Toaster className="dana" />
       <Card className="p-6 border-none shadow-none">
         <div className="flex flex-wrap items-center gap-3 mb-6">
@@ -208,9 +185,9 @@ const Settings = () => {
                 <div className="flex items-center">
                   <Switch
                     id={setting.key}
-                    checked={getSettingState(setting.key)}
-                    onCheckedChange={(checked) => handleChange(setting.key, checked)}
-                    disabled={!settings[setting.key] || loading[setting.key]}
+                    checked={isEnabled(setting.key)}
+                    onCheckedChange={checked => handleChange(setting.key, checked)}
+                    disabled={loading[setting.key] || loadingInitial}
                   />
                   {loading[setting.key] && (
                     <LuLoaderCircle className="animate-spin h-5 w-5 ml-2 text-black dark:text-white" />

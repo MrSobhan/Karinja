@@ -101,7 +101,6 @@ export function SliderJobPosts() {
                     : Array.isArray(rawData?.results)
                         ? rawData.results
                         : [];
-                console.log(list);
 
                 setJobs(list);
                 setError("");
@@ -129,33 +128,26 @@ export function SliderJobPosts() {
                     return (
                         <Card
                             key={job.id}
-                            className="border border-zinc-200/60 dark:border-white/10 shadow-sm hover:shadow-lg transition w-[320px] cursor-pointer rounded-2xl bg-white dark:bg-black px-0 py-0 overflow-hidden"
+                            className="border border-zinc-200/60 dark:border-white/10 shadow-sm hover:shadow-lg transition w-[270px] sm:w-[320px] cursor-pointer rounded-2xl bg-white dark:bg-black px-0 py-0 overflow-hidden"
                             onClick={() => navigate(`/job/${job.id}`)}
                         >
-                            <CardHeader className="flex flex-col gap-3 text-right p-4 pb-2 bg-white dark:bg-black">
-                                <div className="flex flex-col gap-2">
-                                    <CardTitle className="text-xl font-bold flex items-center gap-1">
-                                        <MdOutlineWorkOutline className="text-lg" />
-                                        {job.title}
-                                    </CardTitle>
-                                    <span className="text-sm text-muted-foreground flex items-center gap-2">
-                                        {companyName || "بدون نام شرکت"}
-                                        {job.company?.industry && (
-                                            <span className="text-xs px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 ml-2">{job.company.industry}</span>
-                                        )}
-                                    </span>
+                            <CardHeader className="flex flex-col gap-3 text-right p-3 sm:p-4 pb-2 bg-white dark:bg-black">
+                                <div className="flex justify-between">
+                                    <div className="flex flex-col gap-2">
+                                        <CardTitle className="text-lg sm:text-xl font-medium  flex items-center gap-1">
+                                            <MdOutlineWorkOutline className="text-base sm:text-lg" />
+                                            {job.title}
+                                        </CardTitle>
+                                        <span className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2">
+                                            {companyName || "بدون نام شرکت"}
+                                            {job.company?.industry && (
+                                                <span className="text-xs px-2 py-0.5 rounded bg-black/10 dark:bg-white/10 ml-2">{job.company.industry}</span>
+                                            )}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs sm:text-sm text-muted-foreground mt-2">{statusDate ? ` ${statusDate}` : ""}</p>
                                 </div>
                                 <div className="flex flex-wrap gap-2 justify-end">
-                                    {/* {job.status && (
-                                        <span
-                                            className={cn(
-                                                "inline-block px-2 py-1 rounded border text-xs",
-                                                getStatusClasses(job.status)
-                                            )}
-                                        >
-                                            {job.status}
-                                        </span>
-                                    )} */}
                                     {job.employment_type && (
                                         <span
                                             className={cn(
@@ -167,20 +159,20 @@ export function SliderJobPosts() {
                                         </span>
                                     )}
                                     {job.job_categoriy && (
-                                        <span className="text-xs px-2 py-1 rounded bg-black/10 dark:bg-white/10">
+                                        <span className="text-xs px-2 py-1 font-medium rounded bg-black/10 dark:bg-white/10">
                                             {job.job_categoriy}
                                         </span>
                                     )}
                                 </div>
                             </CardHeader>
-                            <CardContent className="px-4 pt-2 pb-2 bg-white dark:bg-black space-y-2" dir="ltr">
+                            <CardContent className="px-3 sm:px-4 pt-2 pb-4 bg-white dark:bg-black space-y-2" dir="ltr">
                                 {/* <div className="text-sm text-zinc-600 dark:text-zinc-300 leading-7 line-clamp-4 min-h-[56px]">
                                     {job.job_description || "برای این آگهی توضیحی ثبت نشده است."}
                                 </div> */}
                                 <div className="grid gap-2 text-xs text-zinc-500">
                                     <div className="flex items-center gap-1 justify-end">
                                         <span>{job.location || "محل نامشخص"}</span>
-                                        <FiMapPin className="text-lg" />
+                                        <FiMapPin className="text-base sm:text-lg" />
                                     </div>
                                     <div className="flex items-center gap-1 justify-end">
                                         <span>
@@ -189,11 +181,11 @@ export function SliderJobPosts() {
                                                 {job.vacancy_count ?? "نامشخص"}
                                             </strong>
                                         </span>
-                                        <FiBriefcase className="text-lg" />
+                                        <FiBriefcase className="text-base font-medium  sm:text-lg" />
                                     </div>
                                     {job.salary_unit && (
                                         <div className="flex items-center gap-1 justify-end">
-                                            <strong className="text-zinc-800 dark:text-white">
+                                            <strong className="text-zinc-800 dark:text-white font-medium ">
                                                 {job.salary_unit} {(job.salary_range ? job.salary_range.toString().replace(/\B(?=(\d{3})+(?!\d))/g, "،") : "نامشخص")}
                                             </strong>
                                             <span>: حقوق پیشنهادی</span>
@@ -201,20 +193,7 @@ export function SliderJobPosts() {
                                     )}
                                 </div>
                             </CardContent>
-                            <CardFooter className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-4 pt-2">
-                                <div className="text-xs text-muted-foreground">
-                                    {statusDate ? `منتشر شده در ${statusDate}` : "تاریخ انتشار نامشخص"}
-                                </div>
-                                {/* <Button
-                                    className="w-full md:w-auto p-2 !text-sm"
-                                    onClick={e => {
-                                        e.stopPropagation();
-                                        navigate(`/job/${job.id}`);
-                                    }}
-                                >
-                                   <BiMessageSquareDetail /> مشاهده آگهی 
-                                </Button> */}
-                            </CardFooter>
+
                         </Card>
                     );
                 })

@@ -16,10 +16,10 @@ import PersianCalendar from "@/lib/PersianCalendar";
 
 const HomePage = () => {
     document.title = "Karinja"
-    const handleDateChange = (date) => {
-        console.log(date.format("jYYYY/jMM/jDD"));
+    // const handleDateChange = (date) => {
+    //     console.log(date.format("jYYYY/jMM/jDD"));
 
-    }
+    // }
     return (
         <>
             <Navbar />

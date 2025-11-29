@@ -25,7 +25,6 @@ export default function Login() {
         setLoading(true);
         const result = await LoginUser(username, password);
         if (result) {
-            // console.log(result);
             if (!result.userInfo) {
                 navigate("/company-info");
                 return;
@@ -48,22 +47,24 @@ export default function Login() {
     };
 
     return (
-        <div className="shadow-input mx-auto w-full max-w-md rounded-none p-4 md:rounded-2xl md:p-8 min-h-screen flex items-center justify-center flex-col">
+        <div className="shadow-input mx-auto w-full max-w-md rounded-none p-0 md:rounded-2xl md:p-8 min-h-screen flex items-center justify-center flex-col">
             <Toaster className="dana" />
             <motion.div
                 initial="hidden"
                 animate="visible"
                 variants={fadeInUp}
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="flex items-center gap-1 mb-10"
+                className="flex items-center gap-1 mb-5"
             >
-                <HiOutlineLocationMarker className="text-4xl text-gray-800 dark:text-white" />
-                <span className="text-3xl font-bold text-gray-800 dark:text-white moraba">
-                    کاراینجا
-                </span>
+                <Link to="/" className="flex items-center gap-1 mb-10">
+                    <HiOutlineLocationMarker className="text-4xl text-gray-800 dark:text-white" />
+                    <span className="text-3xl font-bold text-gray-800 dark:text-white moraba">
+                        کاراینجا
+                    </span>
+                </Link>
             </motion.div>
 
-            <form className="my-8 p-0 w-3/4 md:w-full" onSubmit={handleSubmit}>
+            <form className="my-8 px-8 w-full" onSubmit={handleSubmit}>
                 <motion.div
                     initial="hidden"
                     animate="visible"
@@ -104,7 +105,7 @@ export default function Login() {
                     animate="visible"
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: 0.4 }}
-                    className="group/btn bg-black relative text-sm h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset] flex items-center justify-center gap-2"
+                    className="group/btn bg-black relative text-base h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset] flex items-center justify-center gap-2"
                     type="submit"
                     disabled={loading}
                 >

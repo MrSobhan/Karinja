@@ -46,7 +46,7 @@ function BlogCard({ post, index }) {
       to={`/blog/${post.id ?? ""}`}
       ref={cardRef}
       className={`
-        w-[300px] h-[330px] rounded-xl relative shadow
+        w-[250px] lg:w-[300px] h-[280px] lg:h-[330px] rounded-xl relative shadow
         cursor-pointer overflow-hidden flex flex-col justify-end
         group
         transition-all duration-300 bg-black/60
@@ -69,8 +69,7 @@ function BlogCard({ post, index }) {
       {/* Black halo overlay on hover */}
       <div
         className={`
-          absolute inset-0 z-10 transition-all duration-300
-          ${hovered ? "bg-black/70 backdrop-blur-sm" : "bg-black/0"}
+          absolute inset-0 z-10 transition-all duration-300 bg-black/20 dark:bg-black/70 backdrop-blur-sm
         `}
         aria-hidden="true"
       />
@@ -82,10 +81,9 @@ function BlogCard({ post, index }) {
           text-white px-5 py-6 flex flex-col gap-2
           items-start transition-all 
           duration-300
-          ${hovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none"}
         `}
       >
-        <div className="font-bold text-lg line-clamp-2">{post.title}</div>
+        <div className="text-lg line-clamp-2">{post.title}</div>
         <div className="text-xs mt-1">{post?.user.full_name || "نویسنده"}</div>
       </div>
     </Link>
@@ -104,7 +102,6 @@ export function SectionBlog() {
       .get("/blogs")
       .then((res) => {
         setPosts(res.data || []);
-        console.log(res.data)
         setError("");
       })
       .catch(() => {

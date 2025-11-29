@@ -294,7 +294,7 @@ const Notifications = () => {
           {isAdmin && (
             <Button
               onClick={openSendModal}
-              className="flex gap-2 items-center bg-gradient-to-l from-indigo-800 to-blue-500 text-white font-semibold hover:scale-105 active:scale-95 transition"
+              className="flex gap-2 items-center bg-gradient-to-l from-indigo-800 to-blue-500 text-white hover:scale-105 active:scale-95 transition"
               type="button"
             >
               <LuSend /> ارسال اعلان

@@ -226,8 +226,8 @@ export default function BlogDetail() {
                                                 variant="outline"
                                                 className={cn(
                                                     blog.status === "منتشر شده"
-                                                        ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                                                        : "bg-gray-100 text-gray-700 border-gray-200",
+                                                        ? "bg-emerald-900/20 text-emerald-500 border-emerald-200 font-medium"
+                                                        : "bg-gray-100 text-gray-700 border-gray-200 font-medium dark:bg-zinc-900 dark:text-zinc-300 dark:border-zinc-800",
                                                     "border"
                                                 )}
                                             >

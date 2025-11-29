@@ -29,12 +29,13 @@ import { MdOutlineWorkOutline, MdOutlineDescription } from "react-icons/md";
 import { SiCountingworkspro } from "react-icons/si";
 import { CiMoneyBill } from "react-icons/ci";
 import { MdOutlineMapsHomeWork } from "react-icons/md";
+import { CgDetailsMore } from "react-icons/cg";
 
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import useAxios from "@/hooks/useAxios";
 import AuthContext from "@/context/authContext";
 import { cn } from "@/lib/utils";
-import { toast , Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 
 // Simple modal implementation (replace with a true modal lib if needed)
 function SimpleModal({ open, onClose, children }) {
@@ -415,14 +416,14 @@ export default function JobDetail() {
         <>
             <Navbar />
             <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-12 lg:pt-28" dir="rtl">
-            <Toaster className="dana"/> 
+                <Toaster className="dana" />
                 <div className="container px-4 mx-auto max-w-5xl space-y-6">
                     {/* Header Section */}
                     <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                         <CardHeader className="space-y-4">
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-start justify-between gap-4">
-                                    <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-200/20 flex items-center justify-center mr-2">
+                                    <div className="w-16 h-16 rounded-full overflow-hidden bg-zinc-200 dark:bg-zinc-200/20 hidden lg:flex items-center justify-center mr-2">
                                         {company.logo ? (
                                             <img
                                                 src={company.logo}
@@ -502,43 +503,43 @@ export default function JobDetail() {
                                             />
                                             {liked ? "ذخیره شده" : "ذخیره"}
                                         </button>
-                                    <button
-                                        className={cn(
-                                            "flex items-center px-2 py-1 rounded-lg border transition focus:ring-2 focus:ring-blue-400 gap-1 text-xs font-medium",
-                                            "bg-blue-50 border-blue-200 text-blue-600 dark:bg-transparent dark:text-blue-400 dark:border-blue-800"
-                                        )}
-                                        aria-label="اشتراک‌گذاری موقعیت شغلی"
-                                        title="اشتراک‌گذاری موقعیت شغلی"
-                                        type="button"
-                                        onClick={() => {
-                                            const url = window.location.href;
-                                            if (navigator.clipboard) {
-                                                navigator.clipboard.writeText(url)
-                                                    .then(() => {
+                                        <button
+                                            className={cn(
+                                                "flex items-center px-2 py-1 rounded-lg border transition focus:ring-2 focus:ring-blue-400 gap-1 text-xs font-medium",
+                                                "bg-blue-50 border-blue-200 text-blue-600 dark:bg-transparent dark:text-blue-400 dark:border-blue-800"
+                                            )}
+                                            aria-label="اشتراک‌گذاری موقعیت شغلی"
+                                            title="اشتراک‌گذاری موقعیت شغلی"
+                                            type="button"
+                                            onClick={() => {
+                                                const url = window.location.href;
+                                                if (navigator.clipboard) {
+                                                    navigator.clipboard.writeText(url)
+                                                        .then(() => {
+                                                            toast.success("لینک اشتراک‌گذاری در کلیپ‌بورد کپی شد!");
+                                                        })
+                                                        .catch(() => {
+                                                            toast.error("کپی لینک با خطا مواجه شد!");
+                                                        });
+                                                } else {
+                                                    // fallback for very old browsers
+                                                    const textarea = document.createElement('textarea');
+                                                    textarea.value = url;
+                                                    document.body.appendChild(textarea);
+                                                    textarea.select();
+                                                    try {
+                                                        document.execCommand('copy');
                                                         toast.success("لینک اشتراک‌گذاری در کلیپ‌بورد کپی شد!");
-                                                    })
-                                                    .catch(() => {
+                                                    } catch {
                                                         toast.error("کپی لینک با خطا مواجه شد!");
-                                                    });
-                                            } else {
-                                                // fallback for very old browsers
-                                                const textarea = document.createElement('textarea');
-                                                textarea.value = url;
-                                                document.body.appendChild(textarea);
-                                                textarea.select();
-                                                try {
-                                                    document.execCommand('copy');
-                                                    toast.success("لینک اشتراک‌گذاری در کلیپ‌بورد کپی شد!");
-                                                } catch {
-                                                    toast.error("کپی لینک با خطا مواجه شد!");
+                                                    }
+                                                    document.body.removeChild(textarea);
                                                 }
-                                                document.body.removeChild(textarea);
-                                            }
-                                        }}
-                                    >
-                                        <FiGlobe className="text-md" />
-                                        اشتراک‌گذاری
-                                    </button>
+                                            }}
+                                        >
+                                            <FiGlobe className="text-md" />
+                                            اشتراک‌گذاری
+                                        </button>
 
                                     </div>
                                 </div>
@@ -553,7 +554,7 @@ export default function JobDetail() {
                             {/* Description */}
                             <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                                 <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
+                                    <CardTitle className="flex items-center gap-2 moraba">
                                         <MdOutlineDescription className="text-xl" />
                                         شرح موقعیت شغلی
                                     </CardTitle>
@@ -569,7 +570,11 @@ export default function JobDetail() {
                             {(job.vacancy_count || job.salary_range || job.salary_unit) && (
                                 <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                                     <CardHeader>
-                                        <CardTitle>جزئیات موقعیت شغلی</CardTitle>
+
+                                        <CardTitle className="moraba text-lg font-medium flex items-center gap-2">
+                                            <CgDetailsMore className="text-xl text-muted-foreground" />
+                                            جزئیات موقعیت شغلی
+                                        </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         {job.location && (
@@ -620,58 +625,58 @@ export default function JobDetail() {
                                             </div>
                                         )}
                                         {company && (company.full_name || company.summary || company.industry) && (
-                                <div className="mt-4">
-                                    <SimpleAccordion title="درباره شرکت">
-                                        <div className="space-y-2">
-                                            {company.full_name && (
-                                                <div>
-                                                    <span className="font-semibold">نام شرکت: </span>
-                                                    {company.full_name}
-                                                </div>
-                                            )}
-                                            {company.industry && (
-                                                <div>
-                                                    <span className="font-semibold">صنعت: </span>
-                                                    {company.industry}
-                                                </div>
-                                            )}
-                                            {company.summary && (
-                                                <div>
-                                                    <span className="font-semibold">توضیحات: </span>
-                                                    <p className="text-sm text-zinc-700 dark:text-zinc-300">{company.summary}</p>
-                                                </div>
-                                            )}
-                                            {company.address && (
-                                                <div>
-                                                    <span className="font-semibold">آدرس شرکت: </span>
-                                                    <span>{company.address}</span>
-                                                </div>
-                                            )}
-                                            {company.phone && (
-                                                <div>
-                                                    <span className="font-semibold">تلفن تماس: </span>
-                                                    <span>{company.phone}</span>
-                                                </div>
-                                            )}
-                                            {company.website_address && (
-                                                <div>
-                                                    <span className="font-semibold">وبسایت: </span>
-                                                    <a
-                                                        className="text-blue-600 underline"
-                                                        href={(company.website_address || "").startsWith('http')
-                                                            ? company.website_address
-                                                            : `https://${company.website_address}`
-                                                        }
-                                                        target="_blank" rel="noopener noreferrer"
-                                                    >
-                                                        {company.website_address}
-                                                    </a>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </SimpleAccordion>
-                                </div>
-                            )}
+                                            <div className="mt-4">
+                                                <SimpleAccordion title="درباره شرکت">
+                                                    <div className="space-y-2">
+                                                        {company.full_name && (
+                                                            <div>
+                                                                <span>نام شرکت: </span>
+                                                                {company.full_name}
+                                                            </div>
+                                                        )}
+                                                        {company.industry && (
+                                                            <div>
+                                                                <span>صنعت: </span>
+                                                                {company.industry}
+                                                            </div>
+                                                        )}
+                                                        {company.summary && (
+                                                            <div className="flex gap-x-2 items-center justify-start">
+                                                                <span>توضیحات: </span>
+                                                                <p className="text-sm text-zinc-700 dark:text-zinc-300">{company.summary}</p>
+                                                            </div>
+                                                        )}
+                                                        {company.address && (
+                                                            <div>
+                                                                <span >آدرس شرکت: </span>
+                                                                <span>{company.address}</span>
+                                                            </div>
+                                                        )}
+                                                        {company.phone && (
+                                                            <div>
+                                                                <span >تلفن تماس: </span>
+                                                                <span>{company.phone}</span>
+                                                            </div>
+                                                        )}
+                                                        {company.website_address && (
+                                                            <div>
+                                                                <span >وبسایت: </span>
+                                                                <a
+                                                                    className="text-blue-600 underline"
+                                                                    href={(company.website_address || "").startsWith('http')
+                                                                        ? company.website_address
+                                                                        : `https://${company.website_address}`
+                                                                    }
+                                                                    target="_blank" rel="noopener noreferrer"
+                                                                >
+                                                                    {company.website_address}
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </SimpleAccordion>
+                                            </div>
+                                        )}
                                     </CardContent>
                                 </Card>
                             )}
@@ -679,7 +684,7 @@ export default function JobDetail() {
                             <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                                 <CardHeader>
                                     <CardTitle>
-                                        <span className="flex items-center gap-2 text-lg">
+                                        <span className="flex items-center gap-2 text-lg font-medium moraba">
                                             <FiBriefcase className="text-xl" />
                                             آگهی‌های مشابه
                                         </span>
@@ -697,28 +702,28 @@ export default function JobDetail() {
                                             {relatedJobs.map(rjob => (
                                                 <li
                                                     key={rjob.id}
-                                                    className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 bg-zinc-50 dark:bg-zinc-900/60 transition rounded-xl px-6 cursor-pointer"
+                                                    className="py-3 flex items-center justify-between gap-1 bg-zinc-50 dark:bg-zinc-900/60 transition rounded-xl px-6 cursor-pointer"
                                                     onClick={() => navigate(`/job/${rjob.id}`)}
                                                     tabIndex={0}
                                                     role="button"
                                                 >
                                                     <div className="flex flex-col gap-1">
-                                                        <strong className="text-sm font-semibold line-clamp-1">{rjob.title}</strong>
+                                                        <strong className="text-sm line-clamp-1">{rjob.title}</strong>
                                                         <span className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1">
                                                             {rjob.company?.full_name || "-"}
                                                         </span>
                                                     </div>
-                                                    <span className="flex flex-row items-center gap-2 mt-1 sm:mt-0">
+                                                    <span className="flex items-center gap-2 mt-1 sm:mt-0">
                                                         {rjob.location && (
                                                             <span
-                                                                className="hidden sm:inline text-xs text-zinc-500 dark:text-zinc-400"
+                                                                className="inline text-xs text-zinc-500 dark:text-zinc-400"
                                                             >
                                                                 <FiMapPin className="inline ml-1" />
                                                                 {rjob.location}
                                                             </span>
                                                         )}
                                                         {rjob.employment_type && (
-                                                            <Badge size="sm" className={cn("dark:bg-zinc-900 border-none py-1", getJobTypeClasses(rjob.employment_type))}>
+                                                            <Badge size="sm" className={cn("dark:bg-zinc-900 border-none py-1 font-medium", getJobTypeClasses(rjob.employment_type))}>
                                                                 {rjob.employment_type}
                                                             </Badge>
                                                         )}
@@ -741,14 +746,14 @@ export default function JobDetail() {
                                         role="button"
                                     >
                                         <FiAlertTriangle className="text-rose-600 text-2xl" />
-                                        <span className="text-sm font-bold text-rose-600">
+                                        <span className="text-sm text-rose-600">
                                             گزارش تخلف این آگهی
                                         </span>
                                     </CardContent>
                                 </Card>
                             </div>
 
-                            
+
                         </div>
 
                         {/* Sidebar - Company Info & Actions */}
@@ -757,14 +762,14 @@ export default function JobDetail() {
                             {company.id && (
                                 <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
                                     <CardHeader>
-                                        <CardTitle>اطلاعات شرکت</CardTitle>
+                                        <CardTitle className="moraba">اطلاعات شرکت</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <hr />
                                         <div>
-                                            <div className="font-bold text-xl mb-2">{company.full_name}</div>
+                                            <div className="text-xl mb-2">{company.full_name}</div>
                                             {company.industry && (
-                                                <Badge className="text-xs py-1 px-2 text-zinc-500 dark:text-white bg-zinc-300 dark:bg-zinc-800 border">
+                                                <Badge className="text-xs py-1 px-2 text-zinc-500 dark:text-white bg-zinc-300 dark:bg-zinc-800 border font-medium">
                                                     {company.industry}
                                                 </Badge>
                                             )}
@@ -876,7 +881,7 @@ export default function JobDetail() {
                                                 required
                                                 tabIndex={0}
                                             />
-                                            <span className="font-semibold">{resume.title || "رزومه بدون عنوان"}</span>
+                                            <span >{resume.title || "رزومه بدون عنوان"}</span>
                                             {resume.summary && (
                                                 <p className="text-xs text-zinc-500 mt-1">{resume.summary.slice(0, 40)}...</p>
                                             )}

@@ -97,13 +97,15 @@ export default function Signup() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="flex items-center gap-1 mb-10"
             >
-                <HiOutlineLocationMarker className="text-4xl text-gray-800 dark:text-white" />
-                <span className="text-3xl font-bold text-gray-800 dark:text-white moraba">
-                    کاراینجا
-                </span>
+                <Link to="/" className="flex items-center gap-1 mt-10">
+                    <HiOutlineLocationMarker className="text-4xl text-gray-800 dark:text-white" />
+                    <span className="text-3xl font-bold text-gray-800 dark:text-white moraba">
+                        کاراینجا
+                    </span>
+                </Link>
             </motion.div>
 
-            <form className="my-8 p-0 w-full md:w-auto" onSubmit={handleSubmit}>
+            <form className="mb-8 p-0 w-full md:w-auto" onSubmit={handleSubmit}>
                 <motion.div
                     initial="hidden"
                     animate="visible"
@@ -118,9 +120,9 @@ export default function Signup() {
                                 type="button"
                                 className={`flex-1 py-2 rounded-md transition border-2 ${
                                     form.role === "job_seeker"
-                                        ? "bg-black text-white shadow-lg scale-105"
-                                        : "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                }`}
+                                        ? "border-blue-500"
+                                        : "border-gray-300 dark:border-zinc-700"
+                                } bg-white dark:bg-zinc-900 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800`}
                                 onClick={() => handleChange({ target: { name: "role", value: "job_seeker" } })}
                             >
                                 کارجو
@@ -129,9 +131,9 @@ export default function Signup() {
                                 type="button"
                                 className={`flex-1 py-2 rounded-md transition border-2 ${
                                     form.role === "employer"
-                                        ? "bg-black text-white shadow-lg scale-105"
-                                        : "bg-white dark:bg-zinc-900 text-black dark:text-white shadow-lg hover:bg-gray-100 dark:hover:bg-zinc-800"
-                                }`}
+                                        ? "border-blue-500"
+                                        : "border-gray-300 dark:border-zinc-700"
+                                } bg-white dark:bg-zinc-900 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-zinc-800`}
                                 onClick={() => handleChange({ target: { name: "role", value: "employer" } })}
                             >
                                 کارفرما
@@ -204,7 +206,7 @@ export default function Signup() {
                     animate="visible"
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: 0.24 }}
-                    className="mb-8 flex flex-col md:flex-row gap-2"
+                    className="mb-8 flex  gap-2"
                 >
                     <LabelInputContainer className="flex-1">
                         <Label htmlFor="password">رمز عبور</Label>
@@ -234,7 +236,7 @@ export default function Signup() {
                     animate="visible"
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: 0.27 }}
-                    className="group/btn bg-black relative block text-sm h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+                    className="group/btn bg-black relative block text-base h-10 w-full rounded-md font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
                     type="submit"
                     disabled={loading}
                 >

@@ -22,6 +22,7 @@ import {
     MdSettings,
     MdLogout,
     MdSupport,
+    MdNotifications
 } from "react-icons/md";
 import { NavbarDock } from "./NavbarDock";
 
@@ -129,18 +130,24 @@ export function Navbar() {
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem>
-                                                <MdCreditCard className="ml-2 text-lg" />
-                                                صورتحساب
+                                                <Link to={'/dashboard/notifications'} className="flex cursor-pointer">
+                                                    <MdNotifications className="ml-2 text-lg" />
+                                                    اعلان ها
+                                                </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem>
-                                                <MdSettings className="ml-2 text-lg" />
-                                                تنظیمات
+                                                <Link to={'/dashboard/settings'} className="flex cursor-pointer">
+                                                    <MdSettings className="ml-2 text-lg" />
+                                                    تنظیمات
+                                                </Link>
                                             </DropdownMenuItem>
                                         </DropdownMenuGroup>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem>
-                                            <MdSupport className="ml-2 text-lg" />
-                                            پشتیبانی
+                                            <Link to={'/dashboard/tickets'} className="flex cursor-pointer">
+                                                <MdSupport className="ml-2 text-lg" />
+                                                پشتیبانی
+                                            </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">

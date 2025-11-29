@@ -21,7 +21,7 @@ const NotFound = () => {
                     className="text-center"
                 >
                     <img
-                        src="./src/image/not-found.svg"
+                        src="/src/image/not-found.svg"
                         alt="404 Not Found"
                         className="mx-auto mb-4 w-64 h-64"
                     />
@@ -43,16 +43,16 @@ const NotFound = () => {
                     animate="visible"
                     variants={fadeInUp}
                     transition={{ duration: 0.5, delay: 0.3 }}
-                    className="flex justify-center gap-4 mt-8 flex-col md:flex-row items-center"
+                    className="flex justify-center gap-2 mt-8 md:flex-row items-center"
                 >
                     <Link to="/">
-                        <Button variant="outline" size="lg">
+                        <Button variant="outline" size="sm">
                             <FaHome className="mr-2" />
                             بازگشت به خانه
                         </Button>
                     </Link>
-                    <Link to="/">
-                        <Button variant="outline" size="lg">
+                    <Link to="/jobs/search">
+                        <Button variant="outline" size="sm">
                             <FaSearch className="mr-2" />
                             جستجوی فرصت شغلی
                         </Button>

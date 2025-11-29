@@ -98,7 +98,7 @@ export function SliderCompany() {
                     <Card
                         key={company.id}
                         className={`
-                            w-[320px] cursor-pointer rounded-2xl
+                            w-[250px] lg:w-[320px] cursor-pointer rounded-2xl
                             bg-white dark:bg-black
                             transition shadow-sm hover:shadow-lg
                             overflow-hidden
@@ -115,7 +115,7 @@ export function SliderCompany() {
                                     </span>
                                 </div>
                                 <div>
-                                    <CardTitle className="text-lg font-bold text-black dark:text-white tracking-tight">
+                                    <CardTitle className="text-lg font-medium text-black dark:text-white tracking-tight">
                                         {company.full_name}
                                     </CardTitle>
                                     {company.industry && (
@@ -123,21 +123,21 @@ export function SliderCompany() {
                                             {company.industry}
                                         </CardDescription>
                                     )}
+                                    
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-3">
+                        <div className="text-sm text-black dark:text-white line-clamp-3 mt-2">
+                                        {company.summary || (
+                                            <span className="italic text-neutral-400 dark:text-neutral-600">توضیحی وارد نشده</span>
+                                        )}
+                                    </div>
                             <div className="text-xs flex flex-wrap gap-x-2 gap-y-1 items-center text-black dark:text-white">
                                 {company.ownership_type && (
                                     <span className="bg-black/5 dark:bg-white/5 rounded-lg p-2 text-xs mt-2 flex items-center justify-center gap-1">
                                         <IoIosGitNetwork />
-                                       نوع کار  {company.ownership_type}
-                                    </span>
-                                )}
-                                {company.employee_count && (
-                                    <span className="bg-black/5 dark:bg-white/5 rounded-lg p-2 text-xs mt-2 flex items-center justify-center gap-1">
-                                        <MdOutlineNumbers />
-                                        تعداد کارکنان شرکت {company.employee_count}
+                                        نوع کار  {company.ownership_type}
                                     </span>
                                 )}
                                 {company.founded_year && (
@@ -158,12 +158,17 @@ export function SliderCompany() {
                                         سایت
                                     </a>
                                 )}
+                           
                             </div>
-                            <div className="text-sm text-black dark:text-white line-clamp-3">
-                                {company.summary || company.description || (
-                                    <span className="italic text-neutral-400 dark:text-neutral-600">توضیحی وارد نشده</span>
-                                )}
-                            </div>
+                            <button
+                                className="flex items-center w-full gap-1 justify-center bg-gray-200/10 hover:bg-gray-200/20 text-black dark:text-white rounded-lg px-3 py-1 !mt-6 transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                دنبال کنید
+                            </button>
+
                         </CardContent>
                     </Card>
                 ))

@@ -54,10 +54,10 @@ export function DataTable({ headers, data, onEdit, onDelete, valueMappings = {} 
     currentPage * pageSize
   );
 
-  React.useEffect(() => {
-    console.log("Data received:", data);
-    console.log("Data 222:", headers);
-  }, [data]);
+  // React.useEffect(() => {
+  //   console.log("Data received:", data);
+  //   console.log("Data 222:", headers);
+  // }, [data]);
 
   const getDisplayValue = (key, value) => {
     if (valueMappings[key] && valueMappings[key][value]) {

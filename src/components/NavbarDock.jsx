@@ -32,14 +32,14 @@ export function NavbarDock() {
       icon: (
         <HiOutlineBriefcase className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/jobs/all",
+      href: "/jobs/search",
     },
     {
       title: "وبلاگ",
       icon: (
         <RiArticleLine className="h-6 w-6 text-neutral-500 dark:text-neutral-300" />
       ),
-      href: "/blog",
+      href: "/blogs",
     },
     isLoggedIn
       ? {

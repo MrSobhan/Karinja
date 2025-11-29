@@ -38,15 +38,15 @@ export function AuthProvider({ children }) {
       document.documentElement.classList.add("dark");
     }
 
-    if(!user){
+    if (!user) {
       getMe()
     }
   }, []);
 
   const isLogin = () => {
-    if(getLocalStorage("token")){
+    if (getLocalStorage("token")) {
       return Boolean(getLocalStorage("token"))
-    }else{
+    } else {
       return false
     }
 
@@ -73,13 +73,13 @@ export function AuthProvider({ children }) {
           user_status: data.user_status
         };
         // console.log(userObj);
-        
+
         setUser(userObj);
 
         if (data.user_status === "غیر فعال" && data.user_role === "employer") {
           return { userInfo: false, user_status: data.user_status };
         }
-        
+
         return { userInfo: true, user_status: data.user_status };
       }
       return false;
@@ -97,34 +97,36 @@ export function AuthProvider({ children }) {
 
   const LogOut = async () => {
     localStorage.removeItem("token");
-    // localStorage.removeItem("refresh_token");
+    localStorage.removeItem("idUser");
     setUser(null);
   };
 
   const getMe = async () => {
     const token = getLocalStorage("token");
-    const userId = getLocalStorage("idUser");
-    try {
+    if (token) {
+      try {
 
-      const res = await axios.get(`${baseUrl}/users/${userId}`, {
-        headers: {
-          "accept": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-      const data = res.data;
+        const res = await axios.get(`${baseUrl}/get_me`, {
+          headers: {
+            "accept": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+        const data = res.data;
 
-      const userObj = {
-        user_id: data.id,
-        user_role: data.role,
-        user_full_name: data.full_name,
-        user_status: data.account_status
-      };
-      
-      setUser(userObj);
+        const userObj = {
+          user_id: data.id,
+          user_role: data.role,
+          user_full_name: data.full_name,
+          user_status: data.account_status
+        };
 
-    } catch (err) {
-      console.error("getMe error:", err);
+        setUser(userObj);
+
+      } catch (err) {
+        console.error("getMe error:", err);
+        navigator('/login')
+      }
     }
   };
 

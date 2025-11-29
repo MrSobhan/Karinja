@@ -78,7 +78,22 @@ export function SectionHeader() {
     };
 
     return (
-        <div className="container relative max-w-7xl mx-auto pt-16 lg:py-32 w-full flex flex-col lg:flex-row items-center justify-center mt-16">
+        <div className="container relative max-w-7xl mx-auto lg:py-32 w-full flex flex-col lg:flex-row items-center justify-center mt-16">
+            
+            <motion.div
+                className="flex lg:hidden w-full justify-center mb-16"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+                <img
+                    src="/src/image/hero.png"
+                    alt="کارجوی موبایل"
+                    className="w-60 h-auto"
+                />
+            </motion.div>
+            
+            
             <motion.div
                 className="mx-auto text-center lg:text-start"
                 variants={containerVariants}
@@ -89,17 +104,17 @@ export function SectionHeader() {
                     className="antialiased font-sans inline-flex text-xs rounded-full border-dashed border-[2.5px] border-gray-900 dark:border-gray-500 py-1 px-6 dana font-medium"
                     variants={childVariants}
                 >
-                    با بیش از 1000 ماشین در سراسر کشور
+                    با بیش از 1000 آگهی در سراسر کشور
                 </motion.p>
                 <motion.p
-                    className="font-bold text-xl mt-7 md:text-4xl dark:text-white text-black dana"
+                    className="font-bold text-2xl mt-7 md:text-4xl dark:text-white text-black dana"
                     variants={childVariants}
                 >
-                    39,728 آگهی استخدام <br />
-                    در 334 شهر
+                    <p>39,728 آگهی استخدام</p>
+                   <p className="mt-3"> در 334 شهر</p>
                 </motion.p>
                 <motion.p
-                    className="font-bold text-xl mb-7 mt-3 md:text-4xl dark:text-white text-black dana"
+                    className="font-bold text-2xl mb-7 mt-3 md:text-4xl dark:text-white text-black dana"
                     variants={childVariants}
                 >
                     شغل خودتو با <span className="moraba">کاراینجا</span> پیدا کن!
@@ -137,7 +152,7 @@ export function SectionHeader() {
                 />
             </div>
 
-            <div className="lg:absolute lg:bottom-4 left-0 w-full px-3 mt-20 lg:mt-0">
+            <div className="lg:absolute lg:bottom-4 left-0 w-full px-3 mt-10 lg:mt-0">
                 <form
                     onSubmit={handleSearch}
                     className="lg:rounded-full lg:w-[60%] px-4 py-4 lg:px-8 mx-auto lg:shadow-lg bgNavbar grid grid-cols-4 lg:flex lg:items-center lg:justify-evenly  lg:flex-nowrap gap-7 overflow-hidden pb-12 lg:pb-4 dark:border-white/[0.2] lg:border border-transparent"

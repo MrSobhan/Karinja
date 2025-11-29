@@ -22,7 +22,8 @@ import {
   BookText,
   Brain,
   BriefcaseBusiness,
-  Rss
+  Rss,
+  Heart
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -375,7 +376,7 @@ export function AppSidebar({ ...props }) {
             title: "شغل‌های ذخیره‌شده",
             titleSite: "Saved Job",
             url: "/dashboard/saved-jobs",
-            icon: DatabaseIcon,
+            icon: Heart,
           },
           {
             title: "تصاویر",
@@ -459,7 +460,7 @@ export function AppSidebar({ ...props }) {
               <HiOutlineLocationMarker className="text-3xl text-gray-800 dark:text-white" />
               <span className="text-2xl font-semibold moraba">کاراینجا</span>
             </Link>
-              <Link to={"/dashboard/notifications"} className="relative group">
+              <Link to={"/dashboard/notifications"} className="relative group mt-2">
                 <Bell
                   className="w-5 cursor-pointer transition-transform duration-150 active:scale-110"
                   style={{ verticalAlign: "middle" }}
@@ -475,9 +476,9 @@ export function AppSidebar({ ...props }) {
         <NavMain items={data.navMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto border-t border-solid border-gray-500/50 pt-3" />
       </SidebarContent>
-      <SidebarFooter>
+      {/* <SidebarFooter>
         <NavUser user={data.user} />
-      </SidebarFooter>
+      </SidebarFooter> */}
     </Sidebar>
   );
 }

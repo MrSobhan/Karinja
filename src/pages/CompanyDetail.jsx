@@ -167,7 +167,7 @@ export default function CompanyDetail() {
     return (
         <>
             <Navbar />
-            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-28 pb-16" dir="rtl">
+            <main className="min-h-screen bg-[#f7f7f7] dark:bg-background pt-12 lg:pt-28 pb-16" dir="rtl">
                 <div className="container px-4 mx-auto max-w-5xl space-y-6">
                     {/* Header Section */}
                     <Card className="border border-zinc-200/60 dark:border-white/10 shadow-sm">
@@ -421,8 +421,8 @@ export default function CompanyDetail() {
                                                 <CardContent className="p-4">
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div className="flex-1">
-                                                            <h3 className="font-bold text-lg mb-1">{job.title}</h3>
-                                                            <div className="flex flex-wrap gap-2 items-center text-sm text-muted-foreground">
+                                                            <h3 className="text-lg mb-1">{job.title}</h3>
+                                                            <div className="flex mt-4 gap-2 items-center text-sm text-muted-foreground">
                                                                 {job.location && (
                                                                     <div className="flex items-center gap-1">
                                                                         <FiMapPin className="text-sm" />
@@ -430,27 +430,28 @@ export default function CompanyDetail() {
                                                                     </div>
                                                                 )}
                                                                 {job.employment_type && (
-                                                                    <Badge variant="secondary" className="text-xs">
+                                                                    <Badge variant="secondary" className="text-xs font-medium">
                                                                         {job.employment_type}
                                                                     </Badge>
                                                                 )}
                                                                 {job.job_categoriy && (
-                                                                    <Badge variant="outline" className="text-xs">
+                                                                    <Badge variant="outline" className="text-xs font-medium">
                                                                         {job.job_categoriy}
                                                                     </Badge>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         <Button
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             size="sm"
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 navigate(`/job/${job.id}`);
                                                             }}
+                                                            className="flex items-center gap-1 justify-center"
                                                         >
-                                                            <FiArrowRight className="mr-2" />
-                                                            مشاهده
+                                                            <FiArrowRight className="text-xs" />
+                                                            <p className="mt-0.5">مشاهده</p>
                                                         </Button>
                                                     </div>
                                                 </CardContent>

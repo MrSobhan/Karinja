@@ -11,6 +11,7 @@ import {
 import { FiSun, FiMoon } from "react-icons/fi"
 import AuthContext from "@/context/authContext";
 import { Button } from "./ui/button";
+import { LogOutIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 
@@ -46,6 +47,12 @@ export function NavSecondary({
                   <span>حالت تاریک</span>
                 </>
               )}
+            </SidebarMenuButton>
+            <SidebarMenuButton
+              className="flex flex-row-reverse gap-2 text-red-600  hover:text-red-700 w-full justify-end my-2"
+              onClick={() => authContext.LogOut()}>
+              خروج
+              <LogOutIcon className="ml-1" />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
