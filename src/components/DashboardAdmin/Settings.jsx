@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useRef } from "react";
+import React, { useEffect, useState, useContext, useRef, useCallback } from "react";
 import useAxios from "@/hooks/useAxios";
 import { toast, Toaster } from "sonner";
 import { LuLoaderCircle } from "react-icons/lu";
@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 
 const NOTIFICATION_SETTINGS = [
-  // به تعداد دلخواه 10 تا قرار بده، اگر بیشتره در صورت نیاز کم کن
   {
     key: "receive_similar_job_ads",
     label: "دریافت آگهی‌های شغلی جدید مرتبط با رزومه‌ام"
@@ -54,14 +53,17 @@ const NOTIFICATION_SETTINGS = [
 
 const Settings = () => {
   const { user } = useContext(AuthContext);
-  const [disabledSettings, setDisabledSettings] = useState({});
+  const [disabledSettings, setDisabledSettings] = useState(undefined);
   const [loading, setLoading] = useState({});
   const [loadingInitial, setLoadingInitial] = useState(true);
   const initializing = useRef(false);
   const axiosInstance = useAxios();
 
   useEffect(() => {
-    if (!user?.user_id) return;
+    if (!user?.user_id) {
+      setDisabledSettings(undefined);
+      return;
+    }
     let canceled = false;
 
     const loadSettings = async () => {
@@ -73,18 +75,20 @@ const Settings = () => {
         const res = await axiosInstance.get(
           `/settings/search/?user_id=${user.user_id}&operator=AND&offset=0&limit=100`
         );
-        const _falses = {};
+        
+        const _falses = [];
         res.data.forEach(item => {
           if (item.value === "false") {
-            _falses[item.key] = item;
+            _falses.push(item.key);
           }
         });
+        
         if (!canceled) {
           setDisabledSettings(_falses);
         }
       } catch (err) {
         toast.error("دریافت تنظیمات انجام نشد");
-        setDisabledSettings({});
+        setDisabledSettings([]);
         console.log(err);
       }
       setLoadingInitial(false);
@@ -97,7 +101,13 @@ const Settings = () => {
     };
   }, [user?.user_id]);
 
-  const isEnabled = (key) => !(key in disabledSettings);
+  const isEnabled = useCallback(
+    (key) => {
+      if (disabledSettings === undefined) return undefined;
+      return !disabledSettings.includes(key);
+    },
+    [disabledSettings]
+  );
 
   const handleChange = async (key, checked) => {
     if (!user?.user_id) return;
@@ -113,27 +123,17 @@ const Settings = () => {
           is_active: true,
           user_id: user.user_id
         });
-        setDisabledSettings(prev => ({
-          ...prev, [key]: { value: "false" }
-        }));
+        setDisabledSettings(prev => (Array.isArray(prev) ? [...prev, key] : [key]));
         toast.success("ذخیره شد");
       } else {
-        const item = disabledSettings[key];
-        if (item?.id) {
-          await axiosInstance.delete(`/settings/${item.id}`);
-        } else {
-          try {
-            const res = await axiosInstance.get(`/settings/search/?user_id=${user.user_id}&key=${key}`);
-            if (res.data?.[0]?.id) {
-              await axiosInstance.delete(`/settings/${res.data[0].id}`);
-            }
-          } catch {}
-        }
-        setDisabledSettings(prev => {
-          const p = { ...prev };
-          delete p[key];
-          return p;
-        });
+        // try remove using index if present, fallback to query
+        try {
+          const res = await axiosInstance.get(`/settings/search/?user_id=${user.user_id}&key=${key}`);
+          if (res.data?.[0]?.id) {
+            await axiosInstance.delete(`/settings/${res.data[0].id}`);
+          }
+        } catch {}
+        setDisabledSettings(prev => (Array.isArray(prev) ? prev.filter(k => k !== key) : []));
         toast.success("ذخیره شد");
       }
     } catch (err) {
@@ -152,7 +152,7 @@ const Settings = () => {
             مدیریت اعلان‌ها و تنظیمات کاربری
           </h1>
         </div>
-        {loadingInitial ? (
+        {disabledSettings === undefined || loadingInitial ? (
           <div className="grid gap-4">
             {Array.from({ length: 4 }).map((_, idx) => (
               <Card key={`skeleton-${idx}`} className="border border-dashed">
@@ -187,7 +187,11 @@ const Settings = () => {
                     id={setting.key}
                     checked={isEnabled(setting.key)}
                     onCheckedChange={checked => handleChange(setting.key, checked)}
-                    disabled={loading[setting.key] || loadingInitial}
+                    disabled={
+                      loading[setting.key] ||
+                      disabledSettings === undefined ||
+                      loadingInitial
+                    }
                   />
                   {loading[setting.key] && (
                     <LuLoaderCircle className="animate-spin h-5 w-5 ml-2 text-black dark:text-white" />
