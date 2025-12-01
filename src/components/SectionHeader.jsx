@@ -87,7 +87,7 @@ export function SectionHeader() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
             >
                 <img
-                    src="/src/image/hero.png"
+                    src={`${window.location.origin}/src/image/hero.png`}
                     alt="کارجوی موبایل"
                     className="w-60 h-auto"
                 />
@@ -132,7 +132,7 @@ export function SectionHeader() {
             <div className="hidden lg:block ml-8 relative">
                 <video
                     className="dark:hidden block w-full"
-                    src="/src/image/light-world.mp4"
+                    src={`${window.location.origin}/src/image/light-world.mp4`}
                     width={340}
                     height={340}
                     autoPlay
@@ -142,7 +142,7 @@ export function SectionHeader() {
                 />
                 <video
                     className="hidden dark:block w-full"
-                    src="/src/image/dark-world.mp4"
+                    src={`${window.location.origin}/src/image/dark-world.mp4`}
                     width={340}
                     height={340}
                     autoPlay
