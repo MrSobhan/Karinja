@@ -5,7 +5,7 @@ import axios from 'axios';
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const baseUrl = "https://karinja-jrg0.onrender.com";
+  const baseUrl = "https://karinja-2upj.onrender.com";
   // Helpers for localStorage
   const setLocalStorage = (key, value) => {
     localStorage.setItem(key, JSON.stringify(value));
