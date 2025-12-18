@@ -93,7 +93,7 @@ export function SectionContact() {
       <h3 className="titleSlider moraba mr-3 mb-16">ارتباط با ما</h3>
       <div className="grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-2 items-start">
         <img
-          src="https://i.redd.it/0uermbt9q8b61.jpg"
+          src="https://s34.picofile.com/file/8488683292/contact_img.jpg"
           alt="map"
           className="block lg:hidden w-full h-full max-w-[500px] max-h-[500px] rounded-xl object-contain mx-auto"
         />
@@ -158,7 +158,7 @@ export function SectionContact() {
           </Button>
         </form>
         <img
-          src="./src/image/contact_img.jpg"
+          src="https://s34.picofile.com/file/8488683292/contact_img.jpg"
           alt="map"
           className="hidden lg:block w-full h-full lg:max-h-[510px] rounded-lg img__contact"
         />

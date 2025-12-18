@@ -73,14 +73,14 @@ export function Navbar() {
                                     <Link to="/employer/post-job">
                                         <ProductItem
                                             title="ثبت آگهی"
-                                            src="https://cdn.jobvision.ir/images/icons/post-job.png"
+                                            src="https://s34.picofile.com/file/8488683384/Job_offers_bro.png"
                                             description="آگهی شغلی خود را منتشر کنید"
                                         />
                                     </Link>
                                     <Link to="/employer/dashboard">
                                         <ProductItem
                                             title="داشبورد کارفرما"
-                                            src="https://cdn.jobvision.ir/images/icons/employer-dashboard.png"
+                                            src="https://s34.picofile.com/file/8488683392/Work_time_amico.png"
                                             description="مدیریت رزومه‌ها و آگهی‌ها"
                                         />
                                     </Link>

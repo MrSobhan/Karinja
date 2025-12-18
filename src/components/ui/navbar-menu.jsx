@@ -74,11 +74,11 @@ export const ProductItem = ({
   src
 }) => {
   return (
-    <a href={href} className="flex space-x-2">
+    <a href={href} className="flex space-x-2 items-center justify-center gap-2">
       <img
         src={src}
         width={140}
-        height={70}
+        height={30}
         alt={title}
         className="shrink-0 rounded-md shadow-2xl" />
       <div>

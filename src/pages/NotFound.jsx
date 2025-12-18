@@ -21,7 +21,7 @@ const NotFound = () => {
                     className="text-center"
                 >
                     <img
-                        src="/src/image/not-found.svg"
+                        src="https://s34.picofile.com/d/8488683250/7db371d4-8d82-4eb4-b4a4-ab5b92457eda/not_found.svg"
                         alt="404 Not Found"
                         className="mx-auto mb-4 w-64 h-64"
                     />

@@ -44,7 +44,7 @@ const SectionHero = () => {
           </div>
 
           <img
-            src={`${window.location.origin}/src/image/hro_img.jpg`}
+            src="https://s34.picofile.com/file/8488683192/hro_img.jpg"
             alt="پلتفرم کاریابی کاراینجا"
             className="mx-auto w-full md:max-w-[50%] rounded-2xl object-cover"
           />
